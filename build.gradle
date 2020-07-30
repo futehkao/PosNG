@@ -1,0 +1,81 @@
+ext.posngVersion = '1.0.0'
+ext.log4jVersion = '2.13.3'
+ext.slf4jVersion = '1.7.30'
+ext.log4jVersion = '2.13.3'
+
+ext.junitPlatformLauncherVersion = '1.6.2'
+ext.junitJupiterVersion = '5.6.2'
+
+allprojects {
+    group 'com.futeh'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:syntax', '-quiet')
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+dependencies {
+    testCompile("org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}")
+    testCompile("org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}")
+}
+
+subprojects {
+
+    group 'com.futeh'
+    version "${posngVersion}"
+
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'maven'
+    apply plugin: 'signing'
+
+    archivesBaseName = "elements-${project.name}"
+
+    signing {
+        sign configurations.archives
+    }
+
+    javadoc {
+        source = sourceSets.main.allJava
+        classpath = configurations.compile
+    }
+
+    task sourcesJar(type: Jar) {
+        archiveBaseName.set "elements-${project.name}"
+        archiveClassifier.set 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    publishing {
+        publications {
+            common(MavenPublication) {
+                from components.java
+                artifactId "PosNG-${project.name}"
+
+                artifact sourcesJar
+                artifact javadocJar
+            }
+        }
+    }
+
+}
