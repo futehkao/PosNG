@@ -1,4 +1,6 @@
 rootProject.name = 'PosNG'
 
-include 'core'
-include 'examples'
+include 'progeny'
+include 'progency-examples'
+include 'posng'
+

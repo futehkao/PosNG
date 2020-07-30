@@ -1,0 +1,34 @@
+{
+  "definitions": {
+    "XX": {
+      "class": "com.futeh.posng.length.VarLen",
+      "encoder": "com.futeh.posng.encoder.Encoder$Ascii",
+      "digits": 2
+    },
+    "TypeX": {
+      "class": "com.futeh.posng.message.StringField",
+      "dataLength": "XX"
+    },
+    "EncoderX": {
+      "class": "com.futeh.posng.encoder.Ascii"
+    }
+  },
+  "attributes": {
+    "a": 1,
+    "b": "B"
+  },
+  "components": {
+    // type, maxLength, dataLength class, pad direction, pad
+    "1": "BitMap, 16",
+    "2": {
+      "class": "TypeX",
+      "maxLength": 8,
+      "dataLength": "XX",
+      "encoder": "EncoderX",
+      "padding": "left"
+    },
+    "3": "TypeX, 16, AA",
+    "4": "TypeX, 16, AA, left, ','",
+    "5": "CHAR, 4, F"
+  }
+}

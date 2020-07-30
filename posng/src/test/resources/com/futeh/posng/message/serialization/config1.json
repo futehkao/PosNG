@@ -1,0 +1,27 @@
+{
+  "definitions": {
+    "XX": {
+      "class": "com.futeh.posng.length.VarLen",
+      "encoder": "com.futeh.posng.encoder.Encoder$Ascii",
+      "digits": 2
+    },
+    "TypeX": {
+      "class": "com.futeh.posng.message.StringField",
+      "dataLength": "XX"
+    },
+    "EncoderX": {
+      "class": "com.futeh.posng.encoder.Ascii"
+    }
+  },
+  "header" : "BIN, 22, BB, encoder=com.futeh.posng.network.visa.BaseIHeader",
+  "components": {
+    "1": {
+      "class": "TypeX",
+      "maxLength": 16,
+      "dataLength": "XX",
+      "encoder": "EncoderX",
+      "padding": "left"
+    },
+    "2": "TypeX, 16, AA"
+  }
+}
