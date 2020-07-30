@@ -105,11 +105,9 @@ import com.futeh.posng.iso.ISOMsgFieldPackager;
 /**
  * ISO 8583 v1987 Packager for Postilion
  *
- * @author Victor A. Salaman <salaman@teknos.com>
+ * @author Victor A. Salaman, salaman@teknos.com
  * @version Id: PostPackager.java,v 1.9 1999/09/17 12:08:02 salaman Exp 
- * @see ISOPackager
  * @see ISOBasePackager
- * @see ISOComponent
  */
 
 public class PostPackager extends ISOBasePackager {

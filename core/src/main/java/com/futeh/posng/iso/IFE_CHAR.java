@@ -50,7 +50,7 @@
 package com.futeh.posng.iso;
 
 /**
- * ISOFieldPackager CHARACTERS (ASCII & BINARY)
+ * ISOFieldPackager CHARACTERS (ASCII and BINARY)
  * EBCDIC version of IF_CHAR
  * @author apr@cs.com.uy
  * @version $Id$

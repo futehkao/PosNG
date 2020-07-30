@@ -39,7 +39,7 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'signing'
 
-    archivesBaseName = "elements-${project.name}"
+    archivesBaseName = "PosNG-${project.name}"
 
     signing {
         sign configurations.archives
@@ -51,7 +51,7 @@ subprojects {
     }
 
     task sourcesJar(type: Jar) {
-        archiveBaseName.set "elements-${project.name}"
+        archiveBaseName.set "PosNG-${project.name}"
         archiveClassifier.set 'sources'
         from sourceSets.main.allSource
     }
@@ -74,6 +74,51 @@ subprojects {
 
                 artifact sourcesJar
                 artifact javadocJar
+            }
+        }
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+
+                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+
+                pom.project {
+                    name project.name
+                    description "PosNG-${project.name}"
+                    packaging 'jar'
+                    // optionally artifactId can be defined here. description 'A application used as an example on how to set up pushing its components to the Central Repository.'
+                    url 'http://github.com/futehkao/PosNG.git'
+
+                    scm {
+                        connection 'scm:git:https://github.com/futehkao/PosNG.git'
+                        developerConnection 'scm:git:https://github.com/futehkao/PosNG.git'
+                        url 'https://github.com/futehkao/PosNG.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'The Apache License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'futeh'
+                            name 'Futeh Kao'
+                            email 'futeh@yahoo.com'
+                        }
+                    }
+                }
             }
         }
     }

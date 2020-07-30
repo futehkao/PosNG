@@ -65,7 +65,7 @@ import com.futeh.posng.iso.ISOUtil;
  * Sends [LEN][TPDU][ISOMSG]
  * (len=2 bytes HEX)
  *
- * @author Mladen Mrkic <mmrkic@arius.co.yu>
+ * @author Mladen Mrkic, mmrkic@arius.co.yu
  * @version $Revision$ $Date$
  * @see ISOMsg
  * @see ISOException

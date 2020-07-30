@@ -233,7 +233,7 @@ public class ISOBinaryFieldPackager extends ISOFieldPackager
      * @param len The length of the data for this field packager.
      * @param maxLength The maximum length allowed for this type of field packager.
      *          This depends on the prefixer that is used.
-     * @throws IllegalArgumentException If len > maxLength.
+     * @throws IllegalArgumentException
      */
     protected void checkLength(int len, int maxLength) throws IllegalArgumentException
     {

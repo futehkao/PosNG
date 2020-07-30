@@ -63,7 +63,7 @@ public interface ISOSource {
      * @param m the Message to be sent
      * @exception IOException
      * @exception ISOException
-     * @exception ISOFilter.VetoException;
+     * @exception ISOFilter.VetoException
      */
     public void send (ISOMsg m) 
         throws IOException, ISOException, ISOFilter.VetoException;

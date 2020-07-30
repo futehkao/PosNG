@@ -72,7 +72,7 @@ import com.futeh.posng.iso.ISOMsg;
  * ISOMsgPanel
  * Swing based GUI to ISOMsg
  * @author apr@cs.com.uy
- * @author Kris Leite <kleite at imcsoftware.com>
+ * @author Kris Leite, kleite at imcsoftware.com
  * @see ISOMsg
  */
 public class ISOMeter extends JComponent implements Runnable {

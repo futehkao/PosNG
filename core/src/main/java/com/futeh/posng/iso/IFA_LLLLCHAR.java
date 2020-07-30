@@ -52,7 +52,7 @@ package com.futeh.posng.iso;
 /**
  * ISOFieldPackager ASCII variable len CHAR
  *
- * @author Victor A. Salaman <salaman@teknos.com>
+ * @author Victor A. Salaman, salaman@teknos.com
  * @version $Id$
  * @see ISOComponent
  */

@@ -58,8 +58,7 @@ package com.futeh.posng.security;
  * But application programmers will be communicating
  * with the security module using this simple interface.
  *
- * @todo support for PIN Verification API's and RSA
- * @author Hani S. Kirollos
+ * author Hani S. Kirollos
  * @version $Revision$ $Date$
  */
 public interface SMAdapter {

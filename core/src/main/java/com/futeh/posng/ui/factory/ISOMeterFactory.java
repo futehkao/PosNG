@@ -69,10 +69,6 @@ import com.futeh.posng.ui.UIFactory;
  * @author Alejandro Revilla
  *
  * Creates an ISOMeter component
- * i.e:
- * <pre>
- *  &lt;iso-meter idref="id" scroll="true|false" refresh="nnn"/&gt
- * </pre>
  * @see UIFactory
  */
 

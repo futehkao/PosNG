@@ -61,7 +61,6 @@ import com.futeh.posng.core.ConfigurationException;
 /**
  * A specific log listener that filters logs based on
  * their priorities,
- * priorities are ordered as follows: TRACE < DEBUG < INFO < WARN < ERROR < FATAL
  * default priority is Log.INFO
  * @author <a href="mailto:taherkordy@dpi2.dpi.net.ir">Alireza Taherkordi</a>
  * @version $Revision$ $Date$

@@ -66,7 +66,6 @@ import com.futeh.posng.util.Loggeable;
  * For more information refer to ANSI X9.17: Financial Institution Key Mangement
  * (Wholesale).
  * </p>
- * @todo add sub-fields support
  * @author Hani S. Kirollos
  * @version $Revision$ $Date$
  */

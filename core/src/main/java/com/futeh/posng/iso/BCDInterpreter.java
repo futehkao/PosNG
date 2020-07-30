@@ -79,7 +79,6 @@ public class BCDInterpreter implements Interpreter
     /**
 	 * (non-Javadoc)
 	 * 
-	 * @see Interpreter#interpret(java.lang.String)
 	 */
     public void interpret(String data, byte[] b, int offset)
     {
@@ -91,7 +90,6 @@ public class BCDInterpreter implements Interpreter
     /**
 	 * (non-Javadoc)
 	 * 
-	 * @see Interpreter#uninterpret(byte[])
 	 */
     public String uninterpret(byte[] rawData, int offset, int length)
     {

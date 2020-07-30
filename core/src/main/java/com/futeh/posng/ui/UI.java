@@ -153,7 +153,7 @@ public class UI implements UIFactory, UIObjectFactory {
     * inside a container
     * 
     * @param ui reference to this UI instance
-    * @param config free form configuration Element
+    * @param e free form configuration Element
     * @return JComponent
     */
     public JComponent create (UI ui, Element e) {
@@ -164,8 +164,7 @@ public class UI implements UIFactory, UIObjectFactory {
      * uses default classloader
      * @param clazz the Clazzzz
      * @return the Object
-     * @throws throw exception if unable to instantiate 
-     * @see setLog
+     * @throws Exception throw exception if unable to instantiate
      */
     public Object newInstance (String clazz) throws Exception {
         ClassLoader cl = Thread.currentThread().getContextClassLoader ();

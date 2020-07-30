@@ -51,16 +51,13 @@ package com.futeh.posng.iso;
 
 
 /**
- * @author apr@cs.com.uy & dflc@cs.com.uy
+ * @author apr@cs.com.uy and dflc@cs.com.uy
  * @version $Id$
  * @see ISOComponent
  * @see IFA_LLNUM
  */
 public class IF_NOP extends ISOFieldPackager {
-    /**
-     * @param len - field len
-     * @param description symbolic descrption
-     */
+
     public IF_NOP () {
         super(0, "<dummy>");
     }

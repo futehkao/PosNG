@@ -67,22 +67,7 @@ import java.util.List;
  * it should be defined _before_ other standard LogListeners
  * such as SimpleLogListener or RotateLogListeners.<br>
  * i.e.
- * <pre>
- * <logger name="qsp">
- *   <log-listener class="org.jpos.util.SimpleLogListener"/>
- *   <log-listener class="org.jpos.util.ProtectedLogListener">
- *     <property name="protect" value="2 35 45 55" />
- *     <property name="wipe"    value="48" />
- *   </log-listener>
- *   <log-listener class="org.jpos.util.RotateLogListener">
- *     <property name="file" value="/tmp/qsp.log" />
- *     <property name="window" value="86400" />
- *     <property name="copies" value="5" />
- *     <property name="maxsize" value="1000000" />
- *   </log-listener>
- * </logger>
- * </pre>
- * 
+ *   see below
  * Order is important. In the previous example SimpleLogListener
  * will dump unprotected LogEvents while RotateLogListener will
  * dump protected ones (for selected fields)
@@ -92,6 +77,23 @@ import java.util.List;
  * @see Configurable
  * @since jPOS 1.3.3
  */
+/* <pre>
+  <logger name="qsp">
+        *   <log-listener class="org.jpos.util.SimpleLogListener"/>
+        *   <log-listener class="org.jpos.util.ProtectedLogListener">
+        *     <property name="protect" value="2 35 45 55" />
+        *     <property name="wipe"    value="48" />
+        *   </log-listener>
+        *   <log-listener class="org.jpos.util.RotateLogListener">
+        *     <property name="file" value="/tmp/qsp.log" />
+        *     <property name="window" value="86400" />
+        *     <property name="copies" value="5" />
+        *     <property name="maxsize" value="1000000" />
+        *   </log-listener>
+        * </logger>
+        * </pre>
+ */
+
 public class ProtectedLogListener implements LogListener, Configurable
 {
     int[] protectFields = null;

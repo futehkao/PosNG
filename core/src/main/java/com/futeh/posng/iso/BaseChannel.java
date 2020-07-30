@@ -300,7 +300,7 @@ public abstract class BaseChannel extends Observable
 
     /** 
      * sets socket timeout (as suggested by 
-     * Leonard Thomas <leonard@rhinosystemsinc.com>)
+     * Leonard Thomas, leonard@rhinosystemsinc.com
      * @param timeout in milliseconds
      * @throws SocketException
      */
@@ -438,7 +438,7 @@ public abstract class BaseChannel extends Observable
      * @param m the Message to be sent
      * @exception IOException
      * @exception ISOException
-     * @exception ISOFilter.VetoException;
+     * @exception ISOFilter.VetoException
      */
     public void send (ISOMsg m) 
         throws IOException, ISOException, ISOFilter.VetoException
@@ -838,7 +838,7 @@ public abstract class BaseChannel extends Observable
     }
     /**
      * @return ISOChannel instance with given name.
-     * @throws NameRegistrar.NotFoundException;
+     * @throws NameRegistrar.NotFoundException
      * @see NameRegistrar
      */
     public static ISOChannel getChannel (String name)

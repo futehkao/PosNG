@@ -544,7 +544,7 @@ public class ISOMUX implements Runnable, ISOSource, LogSource, MUX,
     }
     /**
      * @return ISOMUX instance with given name.
-     * @throws NameRegistrar.NotFoundException;
+     * @throws NameRegistrar.NotFoundException
      * @see NameRegistrar
      */
     public static ISOMUX getMUX (String name)

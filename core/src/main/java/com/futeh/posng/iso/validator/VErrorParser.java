@@ -105,7 +105,11 @@ public class VErrorParser implements LogSource, Loggeable {
      * the xml string representing the list.
      * <pre>
      * Ex:
-     * <isomsg>
+
+     * @param p output stream
+     * @param indent indent character
+     */
+    /* <isomsg>
      *   <field id="2">
      *     <error description="Invalid Len Error" reject-code="101"/>
      *   </field>
@@ -119,8 +123,6 @@ public class VErrorParser implements LogSource, Loggeable {
      *   <error description="Field Expected Error" reject-code="999">
      * </isomsg>
      * </pre>
-     * @param p output stream
-     * @param indent indent character
      */
     public void dump(PrintStream p, String indent) {
         /** @todo !!!!!!!!! */

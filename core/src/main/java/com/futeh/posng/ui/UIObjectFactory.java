@@ -59,7 +59,7 @@ public interface UIObjectFactory {
     /**
      * @param clazz the Clazzzz
      * @return the Object
-     * @throws throws may throw something
+     * @throws Exception throws Exception may throw something
      */
     public Object newInstance (String clazz) throws Exception;
 }

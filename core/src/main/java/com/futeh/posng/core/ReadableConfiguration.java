@@ -10,15 +10,12 @@ package com.futeh.posng.core;
 /**
  * ReadableConfiguration
  *
- * @author <a href="mailto:afedoren@yahoo.com">Alexander Fedorenko</a>
- * @author <a href="mailto:apr@cs.com.uy">Alejandro P. Revilla</a>
+ * @author afedoren@yahoo.com Alexander Fedorenko</a>
+ * @author mailto:apr@cs.com.uy Alejandro P. Revilla</a>
  * @version $Revision$ $Date$
  * @since jPOS 1.4.9
  */
 public interface ReadableConfiguration {
-   /**
-    * @returns cfg Configuration object
-    */
     public Configuration getConfiguration ();
 }
 
