@@ -1,4 +1,4 @@
-ext.posngVersion = '1.1.0'
+ext.posngVersion = '1.1.1'
 ext.log4jVersion = '2.13.3'
 ext.slf4jVersion = '1.7.30'
 ext.log4jVersion = '2.13.3'
