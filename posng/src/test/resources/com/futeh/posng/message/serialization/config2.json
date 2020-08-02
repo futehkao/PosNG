@@ -19,7 +19,7 @@
   },
   "components": {
     // type, maxLength, dataLength class, pad direction, pad
-    "1": "BitMap, 16",
+    "1": "bitmap, 16",
     "2": {
       "class": "TypeX",
       "maxLength": 8,
@@ -29,6 +29,6 @@
     },
     "3": "TypeX, 16, AA",
     "4": "TypeX, 16, AA, left, ','",
-    "5": "CHAR, 4, F"
+    "5": "a_char, 4, F"
   }
 }

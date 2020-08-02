@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.futeh.posng.message.serialization.Alias;
 import com.futeh.posng.message.serialization.JsonWriter;
 
+import java.io.OutputStream;
 import java.util.*;
 
 @JsonPropertyOrder("class")
@@ -62,23 +63,23 @@ public class Message implements Alias {
         return this;
     }
 
-    public SortedMap<Integer, Object> getContents() {
+    public Map<Integer, Object> getContents() {
         return contents;
     }
 
-    public void setContents(SortedMap<Integer, Object> contents) {
-        this.contents = contents;
+    public void setContents(Map<Integer, Object> contents) {
+        this.contents = new TreeMap<>(contents);
     }
 
-    public Object get(int index) {
-        return contents.get(index);
+    public <T> T get(int index) {
+        return(T) contents.get(index);
     }
 
-    public Object get(String index) {
+    public <T> T get(String index) {
         String[] tokens = index.split("\\.");
         if (tokens.length == 0)
             return null;
-        SortedMap<Integer, Object> current = getContents();
+        Map<Integer, Object> current = getContents();
         for (int i = 0; i < tokens.length - 1; i++) {
             String p = tokens[i];
             Object obj = current.get(Integer.parseInt(p.trim()));
@@ -90,15 +91,55 @@ public class Message implements Alias {
                 throw new IllegalArgumentException("Invalid path " + index);
             }
         }
-        return current.get(Integer.parseInt(tokens[tokens.length - 1].trim()));
+        return (T) current.get(Integer.parseInt(tokens[tokens.length - 1].trim()));
     }
 
     public Message set(int index, Object value) {
-        contents.put(index, value);
+        if (value == null)
+            unset(index);
+        else
+            contents.put(index, value);
         return this;
     }
 
-    public Object copy() {
+    public Message unset(int index) {
+        contents.remove(index);
+        return this;
+    }
+
+    // https://en.wikipedia.org/wiki/ISO_8583
+    // Message Origin
+    public Message copyResponse() {
+        if (!contents.containsKey(0))
+            throw new MessageException("MTI not present");
+
+        String mti = contents.get(0).toString();
+        int mtiNum = Integer.parseInt(mti);
+        if ((mtiNum / 10) % 2 != 0)
+            throw new MessageException("MTI=" + mtiNum + " is not a request.");
+        int lastDigit = mtiNum % 10;
+        int respLastDigit = 0;
+        switch (lastDigit) {
+            case 0:
+            case 1: respLastDigit = 0; break;
+            case 2:
+            case 3: respLastDigit = 2; break; // got issuer or issuer repeat
+            case 4:
+            case 5: respLastDigit = 4; break; // notification, 2003 version.
+            case 6:
+            case 7: respLastDigit = 6; break;
+            // 8, 9 are reserved.
+        }
+        String respMti = mti.substring(0, 2);
+        respMti += Character.getNumericValue(mti.charAt (2)) + 1;
+        respMti += respLastDigit;
+        Message copy = copy();
+        copy.set(0, respMti);
+        return copy;
+    }
+
+    // this is a deep copy
+    public Message copy() {
         try {
             Message copy = new Message();
             if (attributes != null) {
@@ -106,7 +147,12 @@ public class Message implements Alias {
             }
             if (header != null)
                 copy.header = Arrays.copyOf(header, header.length);
-            copy.contents.putAll(contents);
+            for (Map.Entry<Integer, Object> entry : contents.entrySet()) {
+                if (entry.getValue() instanceof Message)
+                    copy.contents.put(entry.getKey(), ((Message) entry.getValue()).copy());
+                else
+                    copy.contents.put(entry.getKey(), entry.getValue());
+            }
             return copy;
         } catch (Exception e) {
             throw new MessageException(e);
@@ -122,7 +168,10 @@ public class Message implements Alias {
             if (header != null)
                 copy.header = Arrays.copyOf(header, header.length);
             for (int field : fields) {
-                copy.set(field, get(field));
+                Object obj = get(field);
+                if (obj instanceof Message)
+                    obj = ((Message) obj).copy();
+                copy.set(field, obj);
             }
             return copy;
         } catch (Exception e) {
@@ -138,7 +187,7 @@ public class Message implements Alias {
 
     public String toString() {
         try {
-            return jsonWriter.write(this);
+            return jsonWriter.write(this, true);
         } catch (JsonProcessingException e) {
             return super.toString();
         }

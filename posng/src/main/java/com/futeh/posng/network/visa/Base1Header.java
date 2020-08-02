@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public class BaseIHeader extends Binary {
+public class Base1Header extends Binary {
 
     @Override
     public void encode(OutputStream out, byte[] value) throws IOException {

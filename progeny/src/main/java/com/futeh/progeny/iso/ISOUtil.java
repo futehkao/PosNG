@@ -471,13 +471,23 @@ public class ISOUtil {
      */
     public static byte[] bitSet2byte (BitSet b)
     {
-        int len = (b.length() > 65) ? 128 : 64;
+        int len = 0;
+        if (b.length() > 129)
+            len = 192;
+        else if (b.length() > 65)
+            len = 128;
+        else if (b.length() > 2)
+            len = 64;
+
         byte[] d = new byte[len >> 3];
-        for (int i=0; i<len; i++) 
-            if (b.get(i+1)) 
-                d[i >> 3] |= (0x80 >> (i % 8));
+        for (int i = b.nextSetBit(1); i >= 0; i = b.nextSetBit(i + 1)) {
+            d[(i -1) >> 3] |= (0x80 >> ((i - 1) % 8));
+        }
+
         if (len>64)
             d[0] |= 0x80;
+        if (len>128)
+            d[8] |= 0x80;
         return d;
     }
 
@@ -497,6 +507,34 @@ public class ISOUtil {
 
         BitSet bmap = new BitSet (len);
         for (int i=0; i<len; i++) 
+            if (((b[offset + (i >> 3)]) & (0x80 >> (i % 8))) > 0)
+                bmap.set(i+1);
+        return bmap;
+    }
+
+    /**
+     * To support extended bitmap.  The previsou method is limited to 128.
+     *
+     * @param b
+     * @param offset
+     * @param numBits
+     * @return
+     */
+    public static BitSet byte2BitSet(byte[] b, int offset, int numBits)
+    {
+        int len = numBits < 64 ? numBits : 64;
+        if (numBits > 128) {
+            if ((b[0] & 0x80) > 0 && (b[8] & 0x80) > 0)
+                len = 192;
+            else if ((b[0] & 0x80) > 0)
+                len = 128;
+        } else if (numBits > 64) {
+            if ((b[0] & 0x80) > 0)
+                len = 128;
+        }
+
+        BitSet bmap = new BitSet (len);
+        for (int i=0; i<len; i++)
             if (((b[offset + (i >> 3)]) & (0x80 >> (i % 8))) > 0)
                 bmap.set(i+1);
         return bmap;

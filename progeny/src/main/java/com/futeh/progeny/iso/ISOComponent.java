@@ -135,7 +135,7 @@ public abstract class ISOComponent implements Cloneable {
      * dummy behaviour - return 0 elements Map
      * @return children (in this case 0 children)
      */
-    public Map getChildren() {
+    public Map<Integer, Object> getChildren() {
         return new HashMap<>();
     }
     /**

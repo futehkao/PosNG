@@ -24,13 +24,15 @@ import java.util.*;
 /**
  * Headers such those in Visa need to be handled at the socket level
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "java:S3740"})
 public class Composite extends Component<Message, Composite> {
     private static final String NOT_CONFIGURED = "Component at %s is not configured.";
     private SortedMap<Integer, Component> components;
-    private int extendedBitMap = 65;  // for Banknet, it's third bitmap is located at DE65
+    private int extendedBitmap = 65;  // for Banknet, it's third bitmap is located at DE65
     private Map<String, Object> attributes = new HashMap<>(); // this is for class to associate additional information.
     private BinaryField header;
+    private BitMapField bitMapField;
+    private boolean bitMapInitialized = false;
 
     public Composite() {
         dataLength(null);
@@ -39,18 +41,18 @@ public class Composite extends Component<Message, Composite> {
     protected Composite(Composite from) {
         Composite msg = new Composite();
         msg.components = Collections.unmodifiableSortedMap(from.components);
-        msg.extendedBitMap = from.extendedBitMap;
+        msg.extendedBitmap = from.extendedBitmap;
         msg.attributes.putAll(from.attributes);
         msg.index(from.index());
         msg.dataLength(dataLength());
     }
 
-    public SortedMap<Integer, Component> getComponents() {
+    public Map<Integer, Component> getComponents() {
         return components;
     }
 
-    public void setComponents(SortedMap<Integer, Component> components) {
-        this.components = components;
+    public void setComponents(Map<Integer, Component> components) {
+        this.components = new TreeMap<>(components);
     }
 
     public int maxComponent() {
@@ -59,13 +61,28 @@ public class Composite extends Component<Message, Composite> {
         return components.lastKey();
     }
 
-    public <T extends Component> T component(int index) {
+    public <T extends Component> T get(int index) {
         if (components == null)
             return null;
         return (T) components.get(index);
     }
 
-    public <T extends Component> Composite component(int index, T component) {
+    public  <T extends Component> Composite set(int index, T ... parts) {
+        if (parts == null || parts.length == 0)
+            return this;
+        int curr = index;
+        for (T c : parts) {
+            set(curr, c);
+            curr ++;
+        }
+        return this;
+    }
+
+    public <T extends Component> Composite set(int index, T component) {
+        if (component == null) {
+            unset(index);
+            return this;
+        }
         if (components == null)
             components = new TreeMap<>();
         try {
@@ -75,6 +92,21 @@ public class Composite extends Component<Message, Composite> {
         }
         component.index(index);
         components.put(index, component);
+        if (component instanceof BitMapField) {
+            bitMapField = null;
+            bitMapInitialized = false;
+        }
+        return this;
+    }
+
+    public Composite unset(int index) {
+        if (components == null)
+            return this;
+        Object component = components.remove(index);
+        if (component instanceof BitMapField) {
+            bitMapField = null;
+            bitMapInitialized = false;
+        }
         return this;
     }
 
@@ -84,20 +116,20 @@ public class Composite extends Component<Message, Composite> {
         return components.values();
     }
 
-    public int getExtendedBitMap() {
-        return extendedBitMap;
+    public int getExtendedBitmap() {
+        return extendedBitmap;
     }
 
-    public void setExtendedBitMap(int extendedBitMap) {
-        this.extendedBitMap = extendedBitMap;
+    public void setExtendedBitmap(int extendedBitmap) {
+        this.extendedBitmap = extendedBitmap;
     }
 
     public int extendedBitMap() {
-        return extendedBitMap;
+        return extendedBitmap;
     }
 
     public Composite extendedBitMap(int location) {
-        extendedBitMap = location;
+        extendedBitmap = location;
         return this;
     }
 
@@ -137,17 +169,40 @@ public class Composite extends Component<Message, Composite> {
         return this;
     }
 
+    protected BitMapField getBitMapField() {
+        if (!bitMapInitialized) {
+            if (get(0) instanceof BitMapField) {
+                bitMapField = get(0);
+            } else if (get(1) instanceof BitMapField) {
+                bitMapField = get(1);
+            }
+            bitMapInitialized = true;
+        }
+        return bitMapField;
+    }
+
+    protected int getBitMapFieldIndex() {
+        BitMapField b = getBitMapField();
+        if (b == null) {
+            return Integer.MIN_VALUE;
+        } else {
+            return b.index();
+        }
+    }
+
     public BitMap createBitMap(Message msg) {
         Integer max = msg.lastKey();
         int m = max == null ? 0 : max;
 
-        BitMap primary = new BitMap(128);
+        BitMap primary = new BitMap(m > 64 ? 129 : 65);
         BitMap tertiary = null;
-        if (extendedBitMap > 0) {
-            boolean separateBitMap = component(extendedBitMap) instanceof BitMapField;
-            if (separateBitMap) {
+        if (extendedBitmap > 0) {
+            if (get(extendedBitmap) instanceof BitMapField) {
                 tertiary = new BitMap(65);
-                msg.set(extendedBitMap, tertiary);
+                msg.set(extendedBitmap, tertiary);
+            } else {
+                primary.clear(65);
+                primary.clear(extendedBitmap);
             }
         }
 
@@ -156,70 +211,50 @@ public class Composite extends Component<Message, Composite> {
         if (m > 128)
             primary.set(65);
 
+        setBits(msg, primary, tertiary);
+        return primary;
+    }
+
+    protected void setBits(Message msg, BitMap primary, BitMap tertiary) {
+        int primaryBitmapIndex = getBitMapFieldIndex();
+        msg.unset(primaryBitmapIndex);
         for (Map.Entry<Integer, Object> e : msg.getContents().entrySet()) {
             int pos = e.getKey();
-            Component c = component(pos);
-            if ((pos == 1 || pos == extendedBitMap) && c instanceof BitMapField)
+            if (pos <= primaryBitmapIndex || (pos == extendedBitmap && get(pos) instanceof BitMapField))
                 continue;
 
             if (pos > 128 && tertiary != null) {
                 tertiary.set(pos - 128);
-            } else if (pos != 0) {
+            } else {
                 primary.set(pos);
             }
         }
-        msg.set(1, primary);
-        return primary;
+        msg.set(primaryBitmapIndex, primary);
     }
 
     protected void writeDEs(OutputStream out, BitMap primary, Message msg) throws IOException {
-        for (Map.Entry<Integer, Object> entry : msg.getContents().entrySet()) {
-            int i = entry.getKey();
-            if (primary != null && i > 128)
-                break;
-            if (i != 0)
-                writeDE(out, primary, i, entry.getValue());
-        }
-    }
-
-    protected void writeDE(OutputStream out, BitMap primary, int i, Object value) throws IOException {
-        Component component = component(i);
-        if (primary == null && value == null)
-            throw new MessageException("Bitmap not present at field=" + i);
-
-        // i = 1 is for the primary bit map so primary.get(1) means whether the next bit map exist.
-        if ((primary == null || primary.get(i) || i == 1) && value != null) {
-            if (component == null)
-                throw new MessageException(String.format(NOT_CONFIGURED, i));
-            component.write(out, value);
-        }
-    }
-
-    protected void writeExtendedDEs(OutputStream out, BitMap primary, Message msg) throws IOException {
-        if (primary == null) {
-            writeAllExtendedDEs(out, msg);
-        } else if (primary.get(65)) {
-            BitMap tertiary = primary.length() > 129 ? primary.get(129, 193) : (BitMap) msg.get(extendedBitMap);
-            for (int i = tertiary.nextSetBit(1); i >= 0; i = tertiary.nextSetBit(i + 1)) {
-                Object value = msg.get(i + 128);
-                Component component = component(i + 128);
-                if (tertiary.get(i)) {
-                    if (component == null)
-                        throw new MessageException(String.format(NOT_CONFIGURED, i + 128));
+        if (primary != null) {
+            int primaryBitmapIndex = getBitMapFieldIndex();
+            for (Map.Entry<Integer, Object> entry : msg.getContents().entrySet()) {
+                int i = entry.getKey();
+                if (i < primaryBitmapIndex)
+                    continue;
+                Component component = get(i);
+                if (component == null)
+                    throw new MessageException(String.format(NOT_CONFIGURED, i));
+                component.write(out, entry.getValue());
+            }
+        } else {
+            for (Map.Entry<Integer, Object> entry : msg.getContents().entrySet()) {
+                int i = entry.getKey();
+                Object value = msg.get(i);
+                Component component = get(i);
+                if (component != null)
                     component.write(out, value);
-                }
             }
         }
     }
 
-    private void writeAllExtendedDEs(OutputStream out, Message msg) throws IOException {
-        for (int i = 129; i <= msg.lastKey(); i++) {
-            Object value = msg.get(i);
-            Component component = component(i);
-            if (component != null)
-                component.write(out, value);
-        }
-    }
 
     /**
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
@@ -237,25 +272,26 @@ public class Composite extends Component<Message, Composite> {
             header.write(tmpOut, msg.getHeader());
         }
 
-        // write component 0, usually an MTI
-        if (component(0) != null) {
-            if (msg.get(0) == null)
-                throw new MessageException("Value not present  at field=0");
-            component(0).write(tmpOut, msg.get(0));
+        // write component 0, could b
+        // e an MTI or BitMap
+        int bitMapIndex = getBitMapFieldIndex();
+        for (int i = 0; i < bitMapIndex; i++) {
+            Component comp = get(i);
+            if (comp == null)
+                continue;
+            if (msg.get(i) == null)
+                throw new MessageException("Value not present at field=0");
+            comp.write(tmpOut, msg.get(i));
         }
 
         // create bit map
         BitMap primary = null;
-        if (component(1) instanceof BitMapField) {
+        if (getBitMapField() != null) {
             primary = createBitMap(msg);
         }
 
         // write each component
         writeDEs(tmpOut, primary, msg);
-
-        if (primary != null && primary.get(65) && msg.lastKey() > 128) {
-            writeExtendedDEs(tmpOut, primary, msg);
-        }
 
         if (dataLength() != null) {
             ByteArrayOutputStream bout = (ByteArrayOutputStream)tmpOut;
@@ -266,65 +302,45 @@ public class Composite extends Component<Message, Composite> {
 
     protected BitMap readBitMap(InputStream in, Message msg) throws IOException {
         BitMap bitMap = null;
-        if (component(1) instanceof BitMapField) {
-            bitMap = ((BitMapField) component(1)).read(in);
-            msg.set(1, bitMap);
+        BitMapField bmf = getBitMapField();
+        if (bmf != null) {
+            bitMap = bmf.read(in);
+            msg.set(bmf.getIndex(), bitMap);
         }
         return bitMap;
     }
 
-    protected void readDEs(InputStream in, BitMap bitMap, Message msg) throws IOException {
-        if (bitMap != null) {
-            readFromBitSet(in, bitMap, msg);
+    protected void readDEs(InputStream in, BitMap primary, Message msg) throws IOException {
+        if (primary != null) {
+            readFromBitMap(in, primary, msg);
         } else {
-            for (int i = 1; i <= 128; i++) {
-                Component component = component(i);
+            int maxComponent = maxComponent();
+            for (int i = 1; i <= maxComponent; i++) {
+                Component component = get(i);
                 if (component != null)
                     msg.set(i, component.read(in));
             }
         }
     }
 
-    protected void readFromBitSet(InputStream in, BitMap bitMap, Message msg) throws IOException {
-        for (int i = bitMap.nextSetBit(2); i >= 0; i = bitMap.nextSetBit(i + 1)) {
-            if (i > 128) {
-                break;
-            }
-            Component component = component(i);
+    protected void readFromBitMap(InputStream in, BitMap primary, Message msg) throws IOException {
+        int start = getBitMapFieldIndex() + 1;
+        BitMap bitMap = new BitMap(primary);
+        for (int i = bitMap.nextSetBit(start); i >= 0; i = bitMap.nextSetBit(i + 1)) {
+            Component component = get(i);
             if (bitMap.get(i)) {
                 if (component == null)
                     throw new MessageException(String.format(NOT_CONFIGURED, i ));
                 Object value = component.read(in);
                 msg.set(i, value);
-            }
-        }
-    }
 
-    protected void readExtendedDEs(InputStream in, BitMap primary, Message msg) throws IOException {
-        // Some implementation has the third bitmap at a data element
-        if (primary == null) {
-            readAllExtendedDEs(in, msg);
-        } else if (primary.get(65)) {
-            BitMap tertiary = primary.length() > 129 ? primary.get(129, 193) : (BitMap) msg.get(extendedBitMap);
-            for (int i = tertiary.nextSetBit(1); i >= 0; i = tertiary.nextSetBit(i + 1)) {
-                Component component = component(i + 128);
-                if (tertiary.get(i)) {
-                    if (component == null)
-                        throw new MessageException(String.format(NOT_CONFIGURED, i + 128));
-                    msg.set(i + 128, component.read(in));
+                if (extendedBitmap > 0 && i == extendedBitmap && value instanceof BitMap) {
+                    BitMap tertiary = (BitMap) value;
+                    bitMap.copy(128, tertiary, 1);
                 }
             }
         }
     }
-
-    private void readAllExtendedDEs(InputStream in, Message msg) throws IOException {
-        for (int i = 129; i <= maxComponent(); i++) {
-            Component component = component(i + 128);
-            if (component != null)
-                msg.set(i, component.read(in));
-        }
-    }
-
 
     /**
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
@@ -350,15 +366,16 @@ public class Composite extends Component<Message, Composite> {
                 msg.setHeader(header.read(tmpIn));
             }
 
-            // MTI
-            Component comp0 = component(0);
-            if (comp0 != null) {
-                msg.set(0, ((StringField) comp0).read(tmpIn));
+            // MTI or any field before the bitmap
+            int bitMapIndex = getBitMapFieldIndex();
+            for (int i = 0; i < bitMapIndex; i++) {
+                Component comp = get(i);
+                if (comp != null)
+                    msg.set(i, comp.read(tmpIn));
             }
 
             BitMap primary = readBitMap(tmpIn, msg);
             readDEs(tmpIn, primary, msg);
-            readExtendedDEs(tmpIn, primary, msg);
 
         } catch (Exception e) {
             throw new MessageException(e);

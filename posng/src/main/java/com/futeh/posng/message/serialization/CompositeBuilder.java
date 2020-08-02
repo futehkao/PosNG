@@ -75,12 +75,31 @@ public class CompositeBuilder {
         }
         Map<String, Object> map = new HashMap<>();
         map.put(CLASS, BitMapField.class.getName());
-        definitions.put("BitMap", map);
-        definitions.put("CHAR", configureString(StringField.Padding.RIGHT, ' ', Encoder.ASCII));
-        definitions.put("ECHAR", configureString(StringField.Padding.RIGHT, ' ', Encoder.EBCDIC));
-        definitions.put("NUM", configureString(StringField.Padding.NONE, ' ', Encoder.BCD));
+        definitions.put("bitmap", map);
+
+        map = new HashMap<>();
         map.put(CLASS, BinaryField.class.getName());
-        definitions.put("BIN", map);
+        definitions.put("bin", map);
+
+        map = new HashMap<>();
+        map.put(CLASS, Composite.class.getName());
+        definitions.put("composite", map);
+
+        definitions.put("a_char", configureString(StringField.Padding.RIGHT, ' ', Encoder.ASCII));
+        definitions.put("e_char", configureString(StringField.Padding.RIGHT, ' ', Encoder.EBCDIC));
+        definitions.put("b_num", configureString(StringField.Padding.NONE, ' ', Encoder.BCD));
+        definitions.put("a_num", configureString(StringField.Padding.NONE, ' ', Encoder.ASCII));
+        definitions.put("e_num", configureString(StringField.Padding.NONE, ' ', Encoder.EBCDIC));
+        definitions.put("a_amt", configureAmount(Encoder.ASCII));
+        definitions.put("e_amt", configureAmount(Encoder.EBCDIC));
+
+    }
+
+    private Map<String, Object> configureAmount(Encoder encoder) {
+        Map<String, Object> map = new HashMap<>();
+        map.put(CLASS, AmountField.class.getName());
+        map.put(ENCODER, encoder);
+        return map;
     }
 
     private Map<String, Object> configureString(StringField.Padding padding, char padChar, Encoder encoder) {
@@ -189,7 +208,19 @@ public class CompositeBuilder {
             tokens[i] = tokens[i].trim().replace("\uFF0C", "','");
         if (tokens.length == 0)
             throw new MessageException("Empty component for component=" + key);
-        Object val = newInstance(key, definitions.get(tokens[0]));
+
+        Object component = definitions.get(tokens[0]);
+        if (component == null) {
+            component = definitions.get(tokens[0].toLowerCase());
+        }
+        if (component == null) {
+            component = definitions.get(tokens[0].toUpperCase());
+        }
+        if (component == null) {
+            throw new MessageException("No definition found for " + tokens[0] + " in " + str);
+        }
+
+        Object val = newInstance(key, component);
         Tokens t = new Tokens(tokens);
 
         if (val instanceof com.futeh.posng.message.Field) {
@@ -204,9 +235,6 @@ public class CompositeBuilder {
     public CompositeBuilder config(String str) throws Exception {
         Map<String, Object> map = objectMapper.readValue(str, Map.class);
         Map<String, Map<String, Object>> def = (Map) map.get("definitions");
-        Object header = map.get(HEADER);
-        Map<String, Map<String, Object>> attr = (Map) map.get("attributes");
-        Map<String, Map<String, Object>> components = (Map) map.get("components");
 
         if (def != null) {
             for (Map.Entry<String, Map<String, Object>> entry : def.entrySet()) {
@@ -214,17 +242,26 @@ public class CompositeBuilder {
             }
         }
 
+        configure(composite, map);
+
+        return this;
+    }
+
+    protected void configure(Composite comp, Map<String, Object> map) throws Exception {
+        Object header = map.get(HEADER);
+        Map<String, Map<String, Object>> attr = (Map) map.get("attributes");
+        Map<String, Map<String, Object>> components = (Map) map.get("components");
+
         header(header);
 
         if (attr != null)
-            composite.getAttributes().putAll(attr);
+            comp.getAttributes().putAll(attr);
 
         if (components != null) {
             for (Map.Entry<String, Map<String, Object>> entry : components.entrySet()) {
-                component(Integer.parseInt(entry.getKey()), entry.getValue());
+                set(comp, Integer.parseInt(entry.getKey()), entry.getValue());
             }
         }
-        return this;
     }
 
     public CompositeBuilder header(Object header) throws Exception {
@@ -243,8 +280,13 @@ public class CompositeBuilder {
         return this;
     }
 
-    public CompositeBuilder component(Integer index, Object val) throws Exception {
-        composite.component(index, (Component) newInstance(index.toString(), val));
+    public CompositeBuilder set(int index, Object val) throws Exception {
+        composite.set(index, (Component) newInstance("" + index, val));
+        return this;
+    }
+
+    public CompositeBuilder set(Composite comp, int index, Object val) throws Exception {
+        comp.set(index, (Component) newInstance("" + index, val));
         return this;
     }
 
@@ -298,6 +340,10 @@ public class CompositeBuilder {
         }
 
         setProperties(instance, map);
+
+        if (instance instanceof Composite) {
+            configure((Composite) instance, map);
+        }
         return instance;
     }
 
@@ -310,8 +356,17 @@ public class CompositeBuilder {
             if (prop.getName().equals(CLASS) || value == null || setter == null)
                 continue;
             Object field = getField(prop, value);
-            if (field != SKIP)
-                setter.invoke(instance, field);
+            if (field != SKIP) {
+                setProperty(instance, setter, field);
+            }
+        }
+    }
+
+    private void setProperty(Object instance, Method setter, Object value) {
+        try {
+            setter.invoke(instance, value);
+        } catch (Exception ex) {
+            throw new MessageException(ex);
         }
     }
 

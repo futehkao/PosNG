@@ -46,7 +46,7 @@ public class CompositeBuilderTest {
     void config1() throws Exception {
         CompositeBuilder config = new CompositeBuilder();
         Composite composite = config.config(read("config1.json"))
-                .component(3, "ECHAR, 12, EE")
+                .set(4, "e_char, 12, EE")
                 .getComposite();
     }
 
@@ -54,9 +54,9 @@ public class CompositeBuilderTest {
     void config2() throws Exception {
         CompositeBuilder config = new CompositeBuilder();
         Composite msg = config.config(read("config2.json")).getComposite();
-        StringField s = msg.component(2);
+        StringField s = msg.get(2);
         assertEquals(s.maxLength(), 8);
-        s = msg.component(3);
+        s = msg.get(3);
         assertEquals(s.maxLength(), 16);
     }
 }

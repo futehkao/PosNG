@@ -76,6 +76,15 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
 
     protected Logger logger = null;
     protected String realm = null;
+    protected int extendedBitmap = Integer.MIN_VALUE;
+
+    public int getExtendedBitmap() {
+        return extendedBitmap;
+    }
+
+    public void setExtendedBitmap(int extendedBitmap) {
+        this.extendedBitmap = extendedBitmap;
+    }
 
     public void setFieldPackager (ISOFieldPackager[] fld) {
         this.fld = fld;
@@ -96,6 +105,51 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
             return (fld[1] instanceof ISOBitMapPackager) ? 2 : 1;
         return 0;
     }
+
+    public ISOBitMap createBitMap(ISOComponent msg, Map<Integer, Object> fields) throws ISOException {
+        int m = msg.getMaxField();
+
+        BitSet primary = new BitSet(m > 64 ? 129 : 65);
+        BitSet tertiary = null;
+        if (extendedBitmap > 0) {
+            boolean separateBitMap = fld[extendedBitmap] instanceof ISOBitMapPackager;
+            if (separateBitMap) {
+                tertiary = new BitSet(65); // 0 to 64
+                ISOBitMap isoBitMap = new ISOBitMap(extendedBitmap);
+                isoBitMap.setValue(tertiary);
+                msg.set(isoBitMap);
+                fields.put(extendedBitmap, isoBitMap);
+            } else {
+                primary.clear(65);
+                primary.clear(extendedBitmap);
+                fields.remove(extendedBitmap);
+            }
+        }
+
+        if (m > 64)
+            primary.set(1);
+        if (m > 128)
+            primary.set(65);
+
+        int primaryBitmapIndex = getFirstField() - 1;
+        msg.unset(primaryBitmapIndex);
+        for (Map.Entry<Integer, Object> e : msg.getChildren().entrySet()) {
+            int pos = e.getKey();
+            if (pos <= primaryBitmapIndex || (pos == extendedBitmap && fld[pos] instanceof ISOBitMapPackager))
+                continue;
+
+            if (pos > 128 && tertiary != null) {
+                tertiary.set(pos - 128);
+            } else {
+                primary.set(pos);
+            }
+        }
+        ISOBitMap primaryBitmap = new ISOBitMap(primaryBitmapIndex);
+        primaryBitmap.setValue(primary);
+        msg.set(primaryBitmap);
+        return primaryBitmap;
+    }
+
     /**
      * @param   m   the Component to pack
      * @return      Message image
@@ -108,12 +162,12 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
                 throw new ISOException ("Can't call packager on non Composite");
 
             ISOComponent c;
-            ArrayList<byte[]> v = new ArrayList(128);
+            ArrayList<byte[]> v = new ArrayList<>(128);
             Map<Integer, Object> fields = m.getChildren();
             int len = 0;
             int first = getFirstField();
 
-            c = (ISOComponent) fields.get (new Integer (0));
+            c = (ISOComponent) fields.get (0);
             byte[] b;
 
             if (first > 0 && c != null) {
@@ -124,7 +178,7 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
 
             if (emitBitMap()) {
                 // BITMAP (-1 in HashTable)
-                c = (ISOComponent) fields.get (new Integer (-1));
+                c = createBitMap(m, fields); // create primary bitmap and maybe extended stored in m and fields.
                 b = getBitMapfieldPackager().pack(c);
                 len += b.length;
                 v.add (b);
@@ -136,7 +190,7 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
             int tmpMaxField=Math.min (m.getMaxField(), 128);
 
             for (int i=first; i<=tmpMaxField; i++) {
-                if ((c=(ISOComponent) fields.get (new Integer (i))) != null)
+                if ((c=(ISOComponent) fields.get (i)) != null)
                 {
                     try {
                         ISOFieldPackager fp = fld[i];
@@ -156,8 +210,7 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
         
             if(m.getMaxField()>128 && fld.length > 128) {
                 for (int i=1; i<=64; i++) {
-                    if ((c = (ISOComponent) 
-                        fields.get (new Integer (i+128))) != null)
+                    if ((c = (ISOComponent) fields.get (i+128)) != null)
                     {
                         try {
                             b = fld[i+128].pack(c);
@@ -176,7 +229,7 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
             int k = 0;
             byte[] d = new byte[len];
             for (int i=0; i<v.size(); i++) {
-                b = (byte[]) v.get(i);
+                b = v.get(i);
                 for (int j=0; j<b.length; j++)
                     d[k++] = b[j];
             }
@@ -249,6 +302,14 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
                             evt.addMessage ("</unpack>");
                         }
                         m.set(c);
+
+                        // need to check for extended bitmap at extended
+                        if (i == extendedBitmap && fld.length > 129 && fld[extendedBitmap] instanceof ISOBitMapPackager) {
+                            BitSet extended = (BitSet)((ISOComponent) m.getChildren().get(extendedBitmap)).getValue();
+                            for (int j = extended.nextSetBit(1); j >= 0; j = extended.nextSetBit(j + 1)) {
+                                bmap.set(128 + j);
+                            }
+                        }
                     }
                 } catch (ISOException e) {
                     System.out.println("error unpacking field "+i);
@@ -257,12 +318,12 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
                     throw e;
                 }
             }
-            if (bmap != null && bmap.get(65) && fld.length > 128 &&
-                fld[65] instanceof ISOBitMapPackager)
+
+            if (bmap != null && bmap.get(65) && bmap.get(extendedBitmap) && fld.length > 128 &&
+                fld[extendedBitmap] instanceof ISOBitMapPackager)
             {
                 bmap= (BitSet) 
-                    ((ISOComponent) m.getChildren().get 
-                        (new Integer(65))).getValue();
+                    ((ISOComponent) m.getChildren().get(extendedBitmap)).getValue();
                 for (int i=1; i<64; i++) {
                     try {
                         if (bmap == null || bmap.get(i)) {
@@ -355,14 +416,20 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
                         evt.addMessage ("</unpack>");
                     }
                     m.set(c);
+                    // need to check for extended bitmap at extended
+                    if (i == extendedBitmap && fld.length > 129 && fld[extendedBitmap] instanceof ISOBitMapPackager) {
+                        BitSet extended = (BitSet)((ISOComponent) m.getChildren().get(extendedBitmap)).getValue();
+                        for (int j = extended.nextSetBit(1); j >= 0; j = extended.nextSetBit(j + 1)) {
+                            bmap.set(128 + j);
+                        }
+                    }
                 }
             }
-            if (bmap != null && bmap.get(65) && fld.length > 128 &&
-                fld[65] instanceof ISOBitMapPackager)
+            if (bmap != null && bmap.get(65) && bmap.get(extendedBitmap) && fld.length > 128 &&
+                    fld[extendedBitmap] instanceof ISOBitMapPackager)
             {
-                bmap= (BitSet) 
-                    ((ISOComponent) m.getChildren().get 
-                        (new Integer(65))).getValue();
+                bmap= (BitSet)
+                        ((ISOComponent) m.getChildren().get(extendedBitmap)).getValue();
                 for (int i=1; i<64; i++) {
                     if (bmap == null || bmap.get(i)) {
                         ISOComponent c = fld[i+128].createComponent(i);

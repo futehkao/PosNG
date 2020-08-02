@@ -68,13 +68,21 @@ public class Bcd implements Encoder<String> {
 
         for (int i = 0 ; i < byteLen; i++) {
             if (pad && odd && i == 0) {
-                builder.append(bytes[0] & 0x0f); // lo
+                builder.append(convert(bytes[0] & 0x0f)); // lo
             } else {
-                builder.append((bytes[i] & 0xf0) >> 4); // hi
-                if (builder.length() < length)
-                    builder.append(bytes[i] & 0x0f); // lo
+                builder.append(convert((bytes[i] & 0xf0) >> 4)); // hi
+                if (builder.length() < length) {
+                    builder.append(convert(bytes[i] & 0x0f)); // lo
+                }
             }
         }
         return builder.toString();
+    }
+
+    char convert(int digit) {
+        char ch = Character.forDigit (digit, 16);
+        if (ch == 'd')
+            ch = '='; // for track delimiter.
+        return ch;
     }
 }

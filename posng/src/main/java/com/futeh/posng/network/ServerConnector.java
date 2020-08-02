@@ -21,12 +21,14 @@ import java.io.*;
 public class ServerConnector extends Connector {
 
     public void start() {
-        try {
-            if (socket != null && in == null)
+        if (socket != null && in == null) {
+            try {
                 connect(socket);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
+
     }
 
     public synchronized boolean reconnect() {

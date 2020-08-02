@@ -18,6 +18,7 @@ package com.futeh.posng.message;
 
 import com.futeh.posng.length.VarLen;
 import com.futeh.progeny.iso.*;
+import com.futeh.progeny.iso.packager.GenericPackager;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -26,21 +27,25 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static com.futeh.posng.DataElements.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class MessageTest {
 
+    Composite create() {
+        return new Composite()
+                .set(1, new BitMapField(16))
+                .set(2, a_char(3))
+                .set(3, new Composite()
+                        .set(1, a_char(2))
+                        .set(2, a_char(2)))
+                .set(65, new BitMapField(8))
+                .set(66, a_char(3))
+                .set(129, a_char(3));
+    }
+
     @Test
     void basic() throws IOException {
-        Composite composite = new Composite()
-                .component(1, new BitMapField(16))
-                .component(2, CHAR(3))
-                .component(3, new Composite()
-                        .component(1, CHAR(2))
-                        .component(2, CHAR(2)))
-                .component(65, new BitMapField(8))
-                .component(66, CHAR(3))
-                .component(129, CHAR(3));
+        Composite composite = create();
         Message msg = new Message()
                 .set(2, "123")
                 .set(3, new Message()
@@ -55,21 +60,37 @@ class MessageTest {
         byte[] bytes = out.toByteArray();
         InputStream in = new ByteArrayInputStream(bytes);
         Message msg2 = composite.read(in);
-        assertEquals(msg.get(2), msg2.get(2));
-        assertEquals(msg.get(129), msg2.get(129));
+        assertEquals((Object)msg.get(2), msg2.get(2));
+        assertEquals((Object)msg.get(129), msg2.get(129));
 
         // get get
         assertEquals(msg.get("3.1"), "ab");
     }
 
+    /**
+     * test no fields being set.  We should still get a bitmap.
+     * @throws Exception
+     */
+    @Test void empty() throws Exception {
+        Composite composite = create();
+        Message msg = new Message();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        composite.write(out, msg);
+        byte[] bytes = out.toByteArray();
+        assertTrue(bytes.length > 0);
+        InputStream in = new ByteArrayInputStream(bytes);
+        Message msg2 = composite.read(in);
+        assertNotNull(msg2.get(1));
+    }
+
     @Test void varLen() throws IOException {
         Composite composite = new Composite()
-                .component(1, new BitMapField(16))
-                .component(2, CHAR(99).noPadding().dataLength(new VarLen().digits(2).bcd()))
-                .component(3, new Composite()
+                .set(1, new BitMapField(16))
+                .set(2, a_char(99).noPadding().dataLength(new VarLen().digits(2).bcd()))
+                .set(3, new Composite()
                         .dataLength(BB)
-                        .component(1, CHAR(2))
-                        .component(2, CHAR(2)));
+                        .set(1, a_char(2))
+                        .set(2, a_char(2)));
         Message msg = new Message()
                 .set(2, "12345678910")
                 .set(3, new Message()
@@ -80,13 +101,12 @@ class MessageTest {
         byte[] bytes = out.toByteArray();
         InputStream in = new ByteArrayInputStream(bytes);
         Message msg2 = composite.read(in);
-        assertEquals(msg.get(2), msg2.get(2));
+        assertEquals((Object)msg.get(2), msg2.get(2));
     }
 
     @Test
-    void jpos() throws Exception {
-        ISOBasePackager packager = new ISOBasePackager() {
-        };
+    void progency() throws Exception {
+        GenericPackager packager = new GenericPackager();
         ISOFieldPackager[] packagers = new ISOFieldPackager[]{
                 new IFE_CHAR(4, "MESSAGE TYPE INDICATOR"),
                 new IFB_BITMAP(16, "BIT MAP"),
@@ -103,10 +123,10 @@ class MessageTest {
         byte[] bytes = msg.pack();
 
         Composite msg2 = new Composite();
-        msg2.component(0, ebcdic(4, F))
-                .component(1, new BitMapField(16))
-                .component(2, ebcdic(4, F))
-                .component(3, ebcdic(4, F));
+        msg2.set(0, ebcdic(4, F))
+                .set(1, new BitMapField(16))
+                .set(2, ebcdic(4, F))
+                .set(3, ebcdic(4, F));
 
         InputStream in = new ByteArrayInputStream(bytes);
         Message map = msg2.read(in);

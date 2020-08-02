@@ -57,4 +57,14 @@ class BcdTest {
         val = bcd.decode(new ByteArrayInputStream(bytes), value.length());
         assertEquals(val, value);
     }
+
+    @Test
+    void track2Like() throws IOException {
+        String value = "12=45";
+        Bcd bcd = new Bcd();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        bcd.encode(out, value);
+        String value2 = bcd.decode(new ByteArrayInputStream(out.toByteArray()), 5);
+        assertEquals(value, value2);
+    }
 }

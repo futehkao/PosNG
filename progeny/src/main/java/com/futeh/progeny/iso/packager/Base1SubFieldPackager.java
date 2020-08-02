@@ -68,7 +68,6 @@ import com.futeh.progeny.iso.ISOUtil;
  *
  * @author <a href="mailto:eoin.flood@orbiscom.com">Eoin Flood</a>
  * @version $Id$
- * @see ISOPackager
  * @see ISOBasePackager
  * @see ISOComponent
  */

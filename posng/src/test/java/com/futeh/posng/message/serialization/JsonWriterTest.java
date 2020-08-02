@@ -26,8 +26,8 @@ public class JsonWriterTest {
     @Test
     void basic() throws Exception {
         Composite composite = new Composite()
-                .component(1, new BitMapField(16))
-                .component(65, new BitMapField(8));
+                .set(1, new BitMapField(16))
+                .set(65, new BitMapField(8));
         Message msg = new Message()
                 .set(2, "123")
                 .set(3, new Message()

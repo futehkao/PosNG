@@ -35,6 +35,22 @@ public class BitMap implements Alias {
         bitSet = new BitSet(size);
     }
 
+    public BitMap(BitMap bitMap) {
+        bitSet = new BitSet(bitMap.length());
+        copy(bitMap);
+    }
+
+    public void copy(BitMap bitMap) {
+        copy(0, bitMap, 0);
+    }
+
+    public void copy(int start, BitMap bitMap, int offset) {
+        BitSet from = bitMap.bitSet;
+        for (int i = from.nextSetBit(offset); i >= 0; i = from.nextSetBit(i + 1)) {
+            bitSet.set(i + start);
+        }
+    }
+
     public int length() {
         return bitSet.length();
     }

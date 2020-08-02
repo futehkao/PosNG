@@ -16,6 +16,7 @@
 
 package com.futeh.posng.message;
 
+import com.futeh.posng.encoder.Encoder;
 import com.futeh.posng.length.FixedLen;
 
 import java.io.IOException;
@@ -34,6 +35,7 @@ public class AmountField extends StringField {
         padding(Padding.LEFT)
                 .padChar('0')
                 .dataLength(new FixedLen())
+                .encoder(Encoder.EBCDIC)
                 .maxLength(9);
     }
 

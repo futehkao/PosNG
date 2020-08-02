@@ -255,6 +255,7 @@ public class GenericPackager
         String maxField  = atts.getValue("maxValidField");
         String emitBmap  = atts.getValue("emitBitmap");
         String bmapfield = atts.getValue("bitmapField");
+        String extended  = atts.getValue("extendedBitmap");
 
         if (maxField != null)
             maxValidField = Integer.parseInt(maxField); 
@@ -264,6 +265,9 @@ public class GenericPackager
 
         if (bmapfield != null)
             bitmapField = Integer.parseInt(bmapfield);
+
+        if (extended != null)
+            extendedBitmap = Integer.parseInt(extended);
     }
 
 

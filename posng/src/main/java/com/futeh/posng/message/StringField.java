@@ -76,13 +76,25 @@ public class StringField extends Field<String, StringField> {
         return this;
     }
 
-    public StringField leftPadding() {
+    public StringField leftPadded() {
         this.padding = Padding.LEFT;
         return this;
     }
 
-    public StringField rightPadding() {
+    public StringField leftPadded(char padChar) {
+        this.padding = Padding.LEFT;
+        this.padChar = padChar;
+        return this;
+    }
+
+    public StringField rightPadded() {
         this.padding = Padding.RIGHT;
+        return this;
+    }
+
+    public StringField rightPadded(char padChar) {
+        this.padding = Padding.RIGHT;
+        this.padChar = padChar;
         return this;
     }
 

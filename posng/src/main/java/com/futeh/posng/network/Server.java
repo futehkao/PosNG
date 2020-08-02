@@ -21,11 +21,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 
 public class Server implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    private ServerSocket serverSocket;
+    private volatile ServerSocket serverSocket;
     private Endpoint endpoint;
     private ConnectionInfo connectionInfo;
 
@@ -49,13 +50,15 @@ public class Server implements Runnable {
     }
 
     public void shutdown() {
-        if (serverSocket != null) {
+        ServerSocket s = serverSocket;
+        if (s != null) {
             try {
-                serverSocket.close();
+                s.close();
             } catch (IOException e) {
                 logger.warn("Error closing serverSocket.", e);
             }
         }
+        serverSocket = null;
     }
 
     public void run() {
@@ -63,19 +66,39 @@ public class Server implements Runnable {
             try {
                 serverSocket = createServerSocket();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                logger.error("Cannot create server socket", e);
+                try {
+                    Thread.sleep(getConnectionInfo().getReconnectInterval());
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
             }
-            while(true) {
+            while(!endpoint.isShutdown()) {
                 Socket socket;
                 try {
                     socket = serverSocket.accept();
                 } catch (IOException e) {
                     break;
                 }
-                ServerConnector connector = new ServerConnector();
-                connector.setSocket(socket);
-                endpoint.runEventLoop(connector);
+
+                try {
+                    ServerConnector connector = new ServerConnector();
+                    connector.setSocket(socket);
+                    endpoint.runEventLoop(connector);
+                } catch (Exception e) {
+                    Throwable cause = e;
+                    Throwable wrap;
+                    do {
+                        if (cause instanceof InvocationTargetException) {
+                            cause = ((InvocationTargetException) cause).getTargetException();
+                        }
+                        wrap = cause;
+                        cause = wrap.getCause() != null ? wrap.getCause() : wrap;
+                    } while (cause != wrap);
+                    logger.error("Error initializing accepted socket.", cause);
+                }
             }
+            shutdown();
         }
     }
 

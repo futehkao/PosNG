@@ -268,31 +268,24 @@ public class ISOMsg extends ISOComponent
         return this;
     }
     /**
+     * We dont' really care for toplevel ISOMsg because ISOBasePackager recalculates it.
+     * For other types of packager, just just use -1 field
      * setup BitMap
      * @exception ISOException
      */
     public void recalcBitMap () throws ISOException {
         if (!dirty)
             return;
+        BitSet bmap = new BitSet(maxField);
 
-        if (getMaxField() > 128) {
-            BitSet bmap=new BitSet(64);
-            for (int i=1; i<=64; i++)
-                if(((ISOComponent) fields.get(new Integer (i+128))) != null) 
-                    bmap.set (i);
-            set (new ISOBitMap (65, bmap));
-        }
-                
-        BitSet bmap = new BitSet (getMaxField() > 64 ? 128 : 64);
-                int tmpMaxField=maxField > 128 ? 128 : maxField;
-
-        for (int i=1; i<=tmpMaxField; i++)
-            if (((ISOComponent) fields.get (new Integer (i))) != null) 
+        for (int i=1; i<=maxField; i++)
+            if (fields.get(i) != null)
                 bmap.set (i);
         set (new ISOBitMap (-1, bmap));
                 
         dirty = false;
     }
+
     /**
      * clone fields
      */

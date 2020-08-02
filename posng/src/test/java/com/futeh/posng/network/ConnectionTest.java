@@ -16,6 +16,7 @@
 
 package com.futeh.posng.network;
 
+import com.futeh.posng.DataElements;
 import com.futeh.posng.message.BitMapField;
 import com.futeh.posng.message.Composite;
 import com.futeh.posng.message.Message;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.futeh.posng.DataElements.CHAR;
+import static com.futeh.posng.DataElements.a_char;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConnectionTest {
@@ -35,11 +36,11 @@ public class ConnectionTest {
     @BeforeEach
     void setup() {
         composite = new Composite()
-                .component(1, new BitMapField(16))
-                .component(2, CHAR(3))
-                .component(3, new Composite()
-                        .component(1, CHAR(2))
-                        .component(2, CHAR(2)));
+                .set(1, new BitMapField(16))
+                .set(2, DataElements.a_char(3))
+                .set(3, new Composite()
+                        .set(1, DataElements.a_char(2))
+                        .set(2, DataElements.a_char(2)));
 
         message = new Message()
                 .set(2, "123")
