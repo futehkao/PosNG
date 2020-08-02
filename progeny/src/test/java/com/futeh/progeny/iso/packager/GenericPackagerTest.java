@@ -6,6 +6,8 @@ import com.futeh.progeny.iso.ISOFieldPackager;
 import com.futeh.progeny.iso.ISOMsg;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class GenericPackagerTest {
     @Test
     void extended() throws Exception {
@@ -32,5 +34,9 @@ public class GenericPackagerTest {
         ISOMsg msg2 = new ISOMsg();
         msg2.setPackager(packager);
         msg2.unpack(bytes);
+
+        assertEquals(msg.getString(0), msg2.getString(0));
+        assertEquals(msg.getString(66), msg2.getString(66));
+        assertEquals(msg.getString(130), msg2.getString(130));
     }
 }

@@ -47,7 +47,7 @@ public class Message implements Alias {
 
     @JsonIgnore
     public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
+        this.attributes = new WeakHashMap<>(attributes);
     }
 
     public Object getAttribute(String key) {
@@ -58,7 +58,7 @@ public class Message implements Alias {
 
     public Message setAttribute(String key, Object value) {
         if (attributes == null)
-            attributes = new HashMap<>();
+            attributes = new WeakHashMap<>();
         attributes.put(key, value);
         return this;
     }

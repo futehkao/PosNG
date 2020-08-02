@@ -358,7 +358,7 @@ public class Composite extends Component<Message, Composite> {
 
         Message msg = new Message();
         if (!getAttributes().isEmpty()) {
-            msg.setAttributes(new HashMap<>(getAttributes()));
+            msg.setAttributes(getAttributes());
         }
         try {
             // Header for example Visa header with dst and src

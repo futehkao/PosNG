@@ -52,9 +52,7 @@ package com.futeh.progeny.iso;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.BitSet;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 import com.futeh.progeny.iso.packager.ISO87APackager;
 import com.futeh.progeny.iso.packager.ISO87BPackager;
@@ -163,7 +161,7 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
 
             ISOComponent c;
             ArrayList<byte[]> v = new ArrayList<>(128);
-            Map<Integer, Object> fields = m.getChildren();
+            SortedMap<Integer, Object> fields = m.getChildren();
             int len = 0;
             int first = getFirstField();
 
@@ -187,42 +185,23 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
             // if Field 1 is a BitMap then we are packing an
             // ISO-8583 message so next field is fld#2.
             // else we are packing an ANSI X9.2 message, first field is 1
-            int tmpMaxField=Math.min (m.getMaxField(), 128);
+            for (Map.Entry<Integer, Object> entry : fields.entrySet()) {
+                int i = entry.getKey();
+                if (i < first || (c=(ISOComponent) entry.getValue()) == null)
+                    continue;
 
-            for (int i=first; i<=tmpMaxField; i++) {
-                if ((c=(ISOComponent) fields.get (i)) != null)
-                {
-                    try {
-                        ISOFieldPackager fp = fld[i];
-                        if (fp == null)
-                            throw new ISOException ("null field packager");
-                        b = fp.pack(c);
-                        len += b.length;
-                        v.add (b);
-                    } catch (ISOException e) {
-                        evt.addMessage ("error packing field "+i);
-                        evt.addMessage (c);
-                        evt.addMessage (e);
-                        throw e;
-                    }
-                }
-            }
-        
-            if(m.getMaxField()>128 && fld.length > 128) {
-                for (int i=1; i<=64; i++) {
-                    if ((c = (ISOComponent) fields.get (i+128)) != null)
-                    {
-                        try {
-                            b = fld[i+128].pack(c);
-                            len += b.length;
-                            v.add (b);
-                        } catch (ISOException e) {
-                            evt.addMessage ("error packing field "+(i+128));
-                            evt.addMessage (c);
-                            evt.addMessage (e);
-                            throw e;
-                        }
-                    }
+                try {
+                    ISOFieldPackager fp = fld[i];
+                    if (fp == null)
+                        throw new ISOException ("null field packager");
+                    b = fp.pack(c);
+                    len += b.length;
+                    v.add (b);
+                } catch (ISOException e) {
+                    evt.addMessage ("error packing field "+i);
+                    evt.addMessage (c);
+                    evt.addMessage (e);
+                    throw e;
                 }
             }
 

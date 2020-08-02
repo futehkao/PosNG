@@ -55,6 +55,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * implements a <b>Component</b>
@@ -135,8 +137,8 @@ public abstract class ISOComponent implements Cloneable {
      * dummy behaviour - return 0 elements Map
      * @return children (in this case 0 children)
      */
-    public Map<Integer, Object> getChildren() {
-        return new HashMap<>();
+    public SortedMap<Integer, Object> getChildren() {
+        return new TreeMap<>();
     }
     /**
      * changes this Component field number<br>

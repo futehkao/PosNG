@@ -57,7 +57,7 @@ import java.io.ObjectOutput;
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
 import java.util.BitSet;
-import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.futeh.progeny.iso.packager.XMLPackager;
@@ -76,7 +76,7 @@ import com.futeh.progeny.iso.header.BaseHeader;
 public class ISOMsg extends ISOComponent 
     implements Cloneable, Loggeable, Externalizable
 {
-    protected Map<Integer,Object> fields;
+    protected SortedMap<Integer,Object> fields;
     protected int maxField;
     protected ISOPackager packager;
     protected boolean dirty, maxFieldDirty;
@@ -289,8 +289,8 @@ public class ISOMsg extends ISOComponent
     /**
      * clone fields
      */
-    public Map<Integer,Object> getChildren() {
-        return (Map) ((TreeMap)fields).clone();
+    public SortedMap<Integer, Object> getChildren() {
+        return (SortedMap<Integer, Object>) ((TreeMap) fields).clone();
     }
     /**
      * pack the message with the current packager
@@ -431,7 +431,7 @@ public class ISOMsg extends ISOComponent
     public Object clone() {
         try {
             ISOMsg m = (ISOMsg) super.clone();
-            m.fields = (Map) ((TreeMap)fields).clone();
+            m.fields = (SortedMap<Integer, Object>) ((TreeMap)fields).clone();
             if (header != null)
                 m.header = (ISOHeader) header.clone();
             return m;
