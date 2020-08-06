@@ -19,9 +19,7 @@ package com.futeh.posng.message;
 import com.futeh.posng.length.DataLength;
 import com.futeh.posng.length.FixedLen;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * Models standard Composite design pattern. See https://en.wikipedia.org/wiki/Composite_pattern
@@ -54,7 +52,20 @@ public abstract class Component<T, V extends Component> {
     public void validate() {
     }
 
-    public abstract void write(OutputStream out, T component) throws IOException;
+    public abstract T defaultValue();
+
+    public byte[] write(T value) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        write(out, value);
+        return out.toByteArray();
+    }
+
+    public abstract void write(OutputStream out, T value) throws IOException;
+
+    public T read(byte[] bytes) throws IOException {
+        ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+        return read(in);
+    }
 
     public abstract T read(InputStream in) throws IOException;
 

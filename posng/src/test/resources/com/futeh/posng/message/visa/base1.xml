@@ -179,24 +179,6 @@
             name="AMOUNT, TRANSACTION FEE"
             pad="true"
             class="com.futeh.progeny.iso.IFE_CHAR"/>
-    <!--  <isofield-->
-    <!--      id="29"-->
-    <!--      length="9"-->
-    <!--      name="AMOUNT, SETTLEMENT FEE"-->
-    <!--      pad="true"-->
-    <!--      class="com.futeh.progeny.iso.IFB_AMOUNT"/>-->
-    <!--  <isofield-->
-    <!--      id="30"-->
-    <!--      length="9"-->
-    <!--      name="AMOUNT, TRANSACTION PROCESSING FEE"-->
-    <!--      pad="true"-->
-    <!--      class="com.futeh.progeny.iso.IFB_AMOUNT"/>-->
-    <!--  <isofield-->
-    <!--      id="31"-->
-    <!--      length="9"-->
-    <!--      name="AMOUNT, SETTLEMENT PROCESSING FEE"-->
-    <!--      pad="true"-->
-    <!--      class="com.futeh.progeny.iso.IFB_AMOUNT"/>-->
     <isofield
             id="32"
             length="11"

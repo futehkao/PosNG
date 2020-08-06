@@ -33,7 +33,7 @@ public class AmountField extends StringField {
 
     public AmountField() {
         padding(Padding.LEFT)
-                .padChar('0')
+                .padWith('0')
                 .dataLength(new FixedLen())
                 .encoder(Encoder.EBCDIC)
                 .maxLength(9);

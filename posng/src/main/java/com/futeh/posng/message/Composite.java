@@ -55,10 +55,16 @@ public class Composite extends Component<Message, Composite> {
         this.components = new TreeMap<>(components);
     }
 
-    public int maxComponent() {
+    public Component firstComponent() {
         if (components == null || components.isEmpty())
-            return 0;
-        return components.lastKey();
+            return null;
+        return components.get(components.firstKey());
+    }
+
+    public Component lastComponent() {
+        if (components == null || components.isEmpty())
+            return null;
+        return components.get(components.lastKey());
     }
 
     public <T extends Component> T get(int index) {
@@ -67,13 +73,13 @@ public class Composite extends Component<Message, Composite> {
         return (T) components.get(index);
     }
 
-    public  <T extends Component> Composite set(int index, T ... parts) {
+    public <T extends Component> Composite set(int index, T... parts) {
         if (parts == null || parts.length == 0)
             return this;
         int curr = index;
         for (T c : parts) {
             set(curr, c);
-            curr ++;
+            curr++;
         }
         return this;
     }
@@ -190,6 +196,10 @@ public class Composite extends Component<Message, Composite> {
         }
     }
 
+    public Message defaultValue() {
+        return new Message();
+    }
+
     public BitMap createBitMap(Message msg) {
         Integer max = msg.lastKey();
         int m = max == null ? 0 : max;
@@ -197,7 +207,7 @@ public class Composite extends Component<Message, Composite> {
         BitMap primary = new BitMap(m > 64 ? 129 : 65);
         BitMap tertiary = null;
         if (extendedBitmap > 0) {
-            if (get(extendedBitmap) instanceof BitMapField) {
+            if (get(extendedBitmap) instanceof BitMapField && msg.lastKey() > 128) {
                 tertiary = new BitMap(65);
                 msg.set(extendedBitmap, tertiary);
             } else {
@@ -245,12 +255,17 @@ public class Composite extends Component<Message, Composite> {
                 component.write(out, entry.getValue());
             }
         } else {
-            for (Map.Entry<Integer, Object> entry : msg.getContents().entrySet()) {
-                int i = entry.getKey();
+            int firstKey = firstComponent() != null ? firstComponent().index() : -1;
+            int lastKey = msg.lastKey();
+            for (int i = firstKey; i <= lastKey; i++) {
                 Object value = msg.get(i);
                 Component component = get(i);
-                if (component != null)
+                if (component != null) {
+                    if (value == null) {
+                        value = component.defaultValue();
+                    }
                     component.write(out, value);
+                }
             }
         }
     }
@@ -258,6 +273,7 @@ public class Composite extends Component<Message, Composite> {
 
     /**
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
+     *
      * @param out output stream
      * @throws IOException
      */
@@ -294,7 +310,7 @@ public class Composite extends Component<Message, Composite> {
         writeDEs(tmpOut, primary, msg);
 
         if (dataLength() != null) {
-            ByteArrayOutputStream bout = (ByteArrayOutputStream)tmpOut;
+            ByteArrayOutputStream bout = (ByteArrayOutputStream) tmpOut;
             dataLength().write(out, bout.size());
             out.write(bout.toByteArray());
         }
@@ -314,8 +330,10 @@ public class Composite extends Component<Message, Composite> {
         if (primary != null) {
             readFromBitMap(in, primary, msg);
         } else {
-            int maxComponent = maxComponent();
+            int maxComponent = lastComponent() != null ? lastComponent().index() : -1;
             for (int i = 1; i <= maxComponent; i++) {
+                if (in.available() == 0 && in instanceof ByteArrayInputStream)
+                    break;
                 Component component = get(i);
                 if (component != null)
                     msg.set(i, component.read(in));
@@ -330,7 +348,7 @@ public class Composite extends Component<Message, Composite> {
             Component component = get(i);
             if (bitMap.get(i)) {
                 if (component == null)
-                    throw new MessageException(String.format(NOT_CONFIGURED, i ));
+                    throw new MessageException(String.format(NOT_CONFIGURED, i));
                 Object value = component.read(in);
                 msg.set(i, value);
 
@@ -344,6 +362,7 @@ public class Composite extends Component<Message, Composite> {
 
     /**
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
+     *
      * @param in input stream
      * @throws IOException
      */

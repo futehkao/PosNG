@@ -189,7 +189,6 @@ public abstract class ISOBasePackager implements ISOPackager, LogSource {
                 int i = entry.getKey();
                 if (i < first || (c=(ISOComponent) entry.getValue()) == null)
                     continue;
-
                 try {
                     ISOFieldPackager fp = fld[i];
                     if (fp == null)

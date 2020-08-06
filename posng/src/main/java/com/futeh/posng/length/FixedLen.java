@@ -16,6 +16,10 @@
 
 package com.futeh.posng.length;
 
+import com.futeh.posng.message.Field;
+import com.futeh.posng.message.MessageException;
+import com.futeh.posng.message.Padding;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -32,7 +36,9 @@ public class FixedLen implements DataLength {
     }
 
     @Override
-    public void validate(int maxLength) {
+    public void validate(Field field) {
         // don't care.
+        if (field.padding().equals(Padding.NONE))
+            throw new MessageException("Padding for a fixed field " + field.index() + " cannot be NONE.");
     }
 }

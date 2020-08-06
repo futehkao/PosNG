@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':core')
+    compile project(':progeny')
 
     testCompile "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
     testCompile "org.junit.platform:junit-platform-launcher:${junitPlatformLauncherVersion}"

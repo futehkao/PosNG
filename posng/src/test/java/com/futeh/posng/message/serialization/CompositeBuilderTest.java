@@ -46,7 +46,15 @@ public class CompositeBuilderTest {
     void config1() throws Exception {
         CompositeBuilder config = new CompositeBuilder();
         Composite composite = config.config(read("config1.json"))
-                .set(4, "e_char, 12, EE")
+                .set(10, "e_char, 12, EE")
+                .getComposite();
+    }
+
+    @Test
+    void config1_1() throws Exception {
+        CompositeBuilder config = new CompositeBuilder();
+        Composite composite = config.config(read("config1.json"))
+                .set(10, "e_char, 12, EE")
                 .getComposite();
     }
 

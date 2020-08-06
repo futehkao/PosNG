@@ -16,7 +16,9 @@
 
 package com.futeh.posng.length;
 
+import com.futeh.posng.message.Field;
 import com.futeh.posng.message.MessageException;
+import com.futeh.posng.message.Padding;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,14 +38,15 @@ public class VarLen implements DataLength {
     }
 
     @Override
-    public void validate(int maxLength) {
+    public void validate(Field field) {
         if (digits <=0 )
             throw new MessageException("Digits not set.");
         int num = 1;
         for (int i = 0; i < digits; i++)
             num *= 10;
-        if (maxLength >= num)
-            throw new MessageException("maxLength " + maxLength + " exceeds the capacity of the number of digits " + digits);
+        if (field.maxLength() >= num)
+            throw new MessageException("maxLength " + field.maxLength() + " exceeds the capacity of the number of digits " + digits);
+        field.padding(Padding.NONE);
     }
 
     public int getDigits() {

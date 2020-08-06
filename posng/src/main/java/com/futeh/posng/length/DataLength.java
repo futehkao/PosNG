@@ -16,6 +16,8 @@
 
 package com.futeh.posng.length;
 
+import com.futeh.posng.message.Field;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,5 +25,5 @@ import java.io.OutputStream;
 public interface DataLength {
     int read(InputStream in, int maxLength) throws IOException;
     void write(OutputStream out, int length) throws IOException;
-    void validate(int maxLength);
+    void validate(Field field);
 }

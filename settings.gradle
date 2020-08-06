@@ -1,6 +1,6 @@
 rootProject.name = 'PosNG'
 
 include 'progeny'
-include 'progency-examples'
+include 'progeny-examples'
 include 'posng'
 

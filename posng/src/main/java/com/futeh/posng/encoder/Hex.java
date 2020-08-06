@@ -22,15 +22,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Hex implements Encoder<String> {
+
+    public static byte[] encode(String value) {
+        String hexString = value.replaceAll("\\s","");
+        if (hexString.startsWith("0x"))
+            hexString = hexString.substring(2);
+        return DatatypeConverter.parseHexBinary(hexString);
+    }
+
+    public static String decode(byte[] bytes) {
+        return DatatypeConverter.printHexBinary(bytes).toUpperCase();
+    }
+
     @Override
     public void encode(OutputStream out, String value) throws IOException {
-        String hexString = value.replaceAll("\\s","");
-        byte[] bytes = DatatypeConverter.parseHexBinary(hexString);
-        out.write(bytes);
+        out.write(encode(value));
     }
 
     @Override
     public String decode(InputStream in, int length) throws IOException {
-        return DatatypeConverter.printHexBinary(Encoder.read(in, length)).toUpperCase();
+        return decode(Encoder.read(in, length));
     }
 }

@@ -25,7 +25,8 @@ public abstract class Field<T, V extends Field> extends Component<T, V> {
     protected int maxLength;
     private DataLength dataLength = new FixedLen();
     private Encoder<T> encoder;
-    private String description;
+    private String desc;
+    private Padding padding = Padding.NONE;
 
     public Field() {
     }
@@ -47,11 +48,43 @@ public abstract class Field<T, V extends Field> extends Component<T, V> {
         return (V) this;
     }
 
+    public Padding getPadding() {
+        return padding;
+    }
+
+    public void setPadding(Padding padding) {
+        this.padding = padding;
+    }
+
+    public Padding padding() {
+        return padding;
+    }
+
+    public V padding(Padding padding) {
+        this.padding = padding;
+        return (V) this;
+    }
+
+    public V noPadding() {
+        this.padding = Padding.NONE;
+        return (V) this;
+    }
+
+    public V leftPadded() {
+        this.padding = Padding.LEFT;
+        return (V) this;
+    }
+
+    public V rightPadded() {
+        padding(Padding.RIGHT);
+        return (V) this;
+    }
+
     @Override
     public void validate() {
         if (maxLength <= 0)
             throw new MessageException("maxLength not set");
-        getDataLength().validate(maxLength);
+        getDataLength().validate(this);
     }
 
     public int getMaxLength() {
@@ -88,20 +121,20 @@ public abstract class Field<T, V extends Field> extends Component<T, V> {
         return (V) this;
     }
 
-    public String getDescription() {
-        return description;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDesc(String description) {
+        this.desc = description;
     }
 
     public String desc() {
-        return description;
+        return desc;
     }
 
     public V desc(String description) {
-        setDescription(description);
+        setDesc(description);
         return (V) this;
     }
 }

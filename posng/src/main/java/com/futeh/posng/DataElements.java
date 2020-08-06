@@ -38,9 +38,8 @@ public class DataElements {
     public static DataLength BBB = new VarLen(3).bcd();
     public static DataLength BBBB = new VarLen(4).bcd();
     public static DataLength BBBBB = new VarLen(5).bcd();
-    public static DataLength HH = new VarLen(2).binary();  // for Visa, it is called Hex and therefore H.
-    public static DataLength HHH = new VarLen(3).binary();
-    public static DataLength HHHH = new VarLen(4).binary();
+    public static DataLength H = new VarLen(2).binary();  // for Visa, it is called Hex and therefore H.
+    public static DataLength HH = new VarLen(5).binary();
 
     public static StringField string(int maxLength) {
         return new StringField().maxLength(maxLength);
@@ -88,20 +87,20 @@ public class DataElements {
 
     // ascii character right padded with spaces
     public static StringField a_char(int maxLength) {
-        return ascii(maxLength).dataLength(F).rightPadded().padChar(' ');
+        return ascii(maxLength).dataLength(F).rightPadded().padWith(' ');
     }
 
     public static StringField a_char(int maxLength, DataLength len) {
-        return ascii(maxLength).dataLength(len).rightPadded().padChar(' ');
+        return ascii(maxLength).dataLength(len).rightPadded().padWith(' ');
     }
 
     // ebcdic character right padded with spaces
     public static StringField e_char(int maxLength) {
-        return ascii(maxLength).dataLength(F).rightPadded().padChar(' ');
+        return ascii(maxLength).dataLength(F).rightPadded().padWith(' ');
     }
 
     public static StringField e_char(int maxLength, DataLength len) {
-        return ebcdic(maxLength).dataLength(len).rightPadded().padChar(' ');
+        return ebcdic(maxLength).dataLength(len).rightPadded().padWith(' ');
     }
 
     // BCD encoded number, left padded with 0
@@ -130,6 +129,10 @@ public class DataElements {
     }
 
     // binary
+    public static BinaryField bin(int maxLength) {
+        return binary(maxLength);
+    }
+
     public static BinaryField bin(int maxLength, DataLength len) {
         return binary(maxLength).dataLength(len);
     }

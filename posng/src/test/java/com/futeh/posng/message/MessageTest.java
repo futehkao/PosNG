@@ -55,11 +55,8 @@ class MessageTest {
                 .set(129, "789");
 
         // test read and write
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        composite.write(out, msg);
-        byte[] bytes = out.toByteArray();
-        InputStream in = new ByteArrayInputStream(bytes);
-        Message msg2 = composite.read(in);
+        byte[] bytes = composite.write( msg);
+        Message msg2 = composite.read(bytes);
         assertEquals((Object)msg.get(2), msg2.get(2));
         assertEquals((Object)msg.get(129), msg2.get(129));
 
@@ -74,13 +71,10 @@ class MessageTest {
     @Test void empty() throws Exception {
         Composite composite = create();
         Message msg = new Message();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        composite.write(out, msg);
-        byte[] bytes = out.toByteArray();
+        byte[] bytes = composite.write( msg);
         assertTrue(bytes.length > 0);
         InputStream in = new ByteArrayInputStream(bytes);
-        Message msg2 = composite.read(in);
-        assertNotNull(msg2.get(1));
+        Message msg2 = composite.read(bytes);
     }
 
     @Test void varLen() throws IOException {
@@ -128,17 +122,15 @@ class MessageTest {
                 .set(2, ebcdic(4, F))
                 .set(3, ebcdic(4, F));
 
-        InputStream in = new ByteArrayInputStream(bytes);
-        Message map = msg2.read(in);
+        Message map = msg2.read(bytes);
         assertEquals(msg.getValue(2), map.get(2));
         assertEquals(msg.getValue(3), map.get(3));
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        msg2.write(out, map);
+        bytes = msg2.write(map);
 
         msg = new ISOMsg();
         msg.setPackager(packager);
-        msg.unpack(out.toByteArray());
+        msg.unpack(bytes);
 
         assertEquals(msg.getValue(2), map.get(2));
         assertEquals(msg.getValue(3), map.get(3));

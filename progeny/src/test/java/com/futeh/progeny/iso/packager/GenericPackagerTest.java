@@ -19,7 +19,7 @@ public class GenericPackagerTest {
         packagers[2] = new IFE_CHAR(4, "Field 2");
         packagers[65] = new IFB_BITMAP(8, "BIT MAP");
         packagers[66] = new IFE_CHAR(4, "Field 66");
-        packagers[130] = new IFE_CHAR(4, "Field 130");
+        packagers[129] = new IFE_CHAR(4, "Field 129");
 
         packager.setFieldPackager(packagers);
         packager.setExtendedBitmap(65);
@@ -29,7 +29,7 @@ public class GenericPackagerTest {
         msg.set(2, "0123");
         //
         msg.set(66, "1234");
-        msg.set(130, "1234");
+        msg.set(129, "1234");
         byte[] bytes = msg.pack();
         ISOMsg msg2 = new ISOMsg();
         msg2.setPackager(packager);
@@ -37,6 +37,6 @@ public class GenericPackagerTest {
 
         assertEquals(msg.getString(0), msg2.getString(0));
         assertEquals(msg.getString(66), msg2.getString(66));
-        assertEquals(msg.getString(130), msg2.getString(130));
+        assertEquals(msg.getString(129), msg2.getString(129));
     }
 }

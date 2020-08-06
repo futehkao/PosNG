@@ -19,10 +19,10 @@ package com.futeh.posng.message;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.futeh.posng.encoder.Hex;
 import com.futeh.posng.message.serialization.Alias;
 import com.futeh.posng.message.serialization.JsonWriter;
 
-import java.io.OutputStream;
 import java.util.*;
 
 @JsonPropertyOrder("class")
@@ -72,7 +72,7 @@ public class Message implements Alias {
     }
 
     public <T> T get(int index) {
-        return(T) contents.get(index);
+        return (T) contents.get(index);
     }
 
     public <T> T get(String index) {
@@ -92,6 +92,26 @@ public class Message implements Alias {
             }
         }
         return (T) current.get(Integer.parseInt(tokens[tokens.length - 1].trim()));
+    }
+
+    public String getString(int index) {
+        return toString(get(index));
+    }
+
+    public String getString(String path) {
+        return toString(get(path));
+    }
+
+    private String toString(Object val) {
+        if (val != null) {
+            if (val instanceof String)
+                return val.toString();
+            else if (val instanceof byte[])
+                return Hex.decode((byte[]) val);
+            else
+                return val.toString();
+        }
+        return null;
     }
 
     public Message set(int index, Object value) {
@@ -121,17 +141,25 @@ public class Message implements Alias {
         int respLastDigit = 0;
         switch (lastDigit) {
             case 0:
-            case 1: respLastDigit = 0; break;
+            case 1:
+                respLastDigit = 0;
+                break;
             case 2:
-            case 3: respLastDigit = 2; break; // got issuer or issuer repeat
+            case 3:
+                respLastDigit = 2;
+                break; // got issuer or issuer repeat
             case 4:
-            case 5: respLastDigit = 4; break; // notification, 2003 version.
+            case 5:
+                respLastDigit = 4;
+                break; // notification, 2003 version.
             case 6:
-            case 7: respLastDigit = 6; break;
+            case 7:
+                respLastDigit = 6;
+                break;
             // 8, 9 are reserved.
         }
         String respMti = mti.substring(0, 2);
-        respMti += Character.getNumericValue(mti.charAt (2)) + 1;
+        respMti += Character.getNumericValue(mti.charAt(2)) + 1;
         respMti += respLastDigit;
         Message copy = copy();
         copy.set(0, respMti);

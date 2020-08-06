@@ -24,77 +24,38 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class StringField extends Field<String, StringField> {
-    public enum Padding {
-        NONE,
-        LEFT,
-        RIGHT;
-    }
-
-    private char padChar = ' ';
-    private Padding padding = Padding.NONE;
+    private char padWith = ' ';
 
     public StringField() {
         encoder(Encoder.ASCII);
     }
 
-    public char getPadChar() {
-        return padChar;
+    public char getPadWith() {
+        return padWith;
     }
 
-    public void setPadChar(char padChar) {
-        this.padChar = padChar;
+    public void setPadWith(char padWith) {
+        this.padWith = padWith;
     }
 
-    public char padChar() {
-        return padChar;
+    public char padWith() {
+        return padWith;
     }
 
-    public StringField padChar(char padChar) {
-        this.padChar = padChar;
+    public StringField padWith(char padWith) {
+        this.padWith = padWith;
         return this;
     }
 
-    public Padding getPadding() {
-        return padding;
-    }
-
-    public void setPadding(Padding padding) {
-        this.padding = padding;
-    }
-
-    public Padding padding() {
-        return padding;
-    }
-
-    public StringField padding(Padding padding) {
-        this.padding = padding;
+    public StringField leftPadded(char padWith) {
+        padding(Padding.LEFT);
+        this.padWith = padWith;
         return this;
     }
 
-    public StringField noPadding() {
-        this.padding = Padding.NONE;
-        return this;
-    }
-
-    public StringField leftPadded() {
-        this.padding = Padding.LEFT;
-        return this;
-    }
-
-    public StringField leftPadded(char padChar) {
-        this.padding = Padding.LEFT;
-        this.padChar = padChar;
-        return this;
-    }
-
-    public StringField rightPadded() {
-        this.padding = Padding.RIGHT;
-        return this;
-    }
-
-    public StringField rightPadded(char padChar) {
-        this.padding = Padding.RIGHT;
-        this.padChar = padChar;
+    public StringField rightPadded(char padWith) {
+        padding(Padding.RIGHT);
+        this.padWith = padWith;
         return this;
     }
 
@@ -123,10 +84,15 @@ public class StringField extends Field<String, StringField> {
         }
     }
 
+    public String defaultValue() {
+        return "";
+    }
+
     @Override
     public String read(InputStream in) throws IOException {
         int len = dataLength().read(in, maxLength());
-        return encoder().decode(in, len);
+        String value = encoder().decode(in, len);
+        return pad(value, maxLength());
     }
 
     @Override
@@ -143,7 +109,7 @@ public class StringField extends Field<String, StringField> {
     }
 
     protected String pad(String value, int length) {
-        switch (padding) {
+        switch (getPadding()) {
             case NONE: return noPadding(value, length);
             case LEFT: return padLeft(value, length);
             case RIGHT: return padRight(value, length);
@@ -156,7 +122,7 @@ public class StringField extends Field<String, StringField> {
         if (value.length() == length)
             return value;
         for (int i = 0; i < length - value.length(); i++) {
-            builder.append(padChar);
+            builder.append(padWith);
         }
         builder.append(value);
         return builder.toString();
@@ -168,7 +134,7 @@ public class StringField extends Field<String, StringField> {
             return value;
         builder.append(value);
         for (int i = 0; i < length - value.length(); i++) {
-            builder.append(padChar);
+            builder.append(padWith);
         }
         return builder.toString();
     }

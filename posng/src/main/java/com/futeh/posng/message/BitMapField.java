@@ -31,9 +31,19 @@ public class BitMapField extends Field<BitMap, BitMapField> {
     }
 
     @Override
-    public void write(OutputStream out, BitMap bitMap) throws IOException {
-        int len;
+    public void validate() {
+        if (maxLength <= 0)
+            throw new MessageException("maxLength not set");
+    }
 
+    @Override
+    public BitMap defaultValue() {
+        return new BitMap();
+    }
+
+    @Override
+    public void write(OutputStream out, BitMap bitMap) throws IOException {
+        int len ;
         if (bitMap.length() > 129)
             len = 24;
         else if (bitMap.length() > 65)

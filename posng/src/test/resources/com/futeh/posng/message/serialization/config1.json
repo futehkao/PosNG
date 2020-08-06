@@ -11,23 +11,34 @@
     },
     "EncoderX": {
       "class": "com.futeh.posng.encoder.Ascii"
+    },
+    "BinX": {
+      "class": "bin",
+      "padWith": "0xFF",
+      "padding": "right"
     }
   },
+  // type, maxLength, data length (eg F, AA, EE), padding direction, pad with (could be char for string field
+  // or hex for binary field)
   "header" : "bin, 22, BB, encoder=com.futeh.posng.network.visa.Base1Header",
   "components": {
     "1": {
+      "desc": "description",
       "class": "TypeX",
       "maxLength": 16,
       "dataLength": "XX",
-      "encoder": "EncoderX",
+      "encoder": "com.futeh.posng.encoder.Encoder.ASCII",
       "padding": "left"
     },
-    "2": "TypeX, 16, AA",
-    "3": {
+    "2": "TypeX, 16, AA, desc=typeX\\, blah\\, blah",
+    "3": "BinX, 16, encoder=com.futeh.posng.encoder.Encoder.BINARY",
+    "4": "bin, 8, F, left, 0xAA",
+    "5": {
       "class": "composite",
       "extendedBitmap" : 66,
       "components" : {
-
+        "0" : "bitmap, 8, HH",
+        "1" : "a_char, 16, F, right, 0"
       }
     }
   }
