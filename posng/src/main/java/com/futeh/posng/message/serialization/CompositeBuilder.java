@@ -27,13 +27,16 @@ import com.futeh.posng.length.DataLength;
 import com.futeh.posng.message.*;
 
 import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unchecked")
 public class CompositeBuilder {
@@ -78,6 +81,7 @@ public class CompositeBuilder {
     private Composite composite = new Composite();
 
     public CompositeBuilder() {
+        // loading DataElements fields
         Class cls = DataElements.class;
         while (cls != null && !cls.equals(Object.class)) {
             Field[] fields = cls.getDeclaredFields();
@@ -88,6 +92,8 @@ public class CompositeBuilder {
                 if (!definitions.containsKey(f.getName())) {
                     try {
                         definitions.put(f.getName(), f.get(null));
+                        definitions.put(f.getName().toLowerCase(), f.get(null));
+                        definitions.put(f.getName().toUpperCase(), f.get(null));
                     } catch (IllegalAccessException e) {
                         throw new MessageException(e);
                     }
@@ -95,33 +101,38 @@ public class CompositeBuilder {
             }
             cls = cls.getSuperclass();
         }
-        Map<String, Object> map = new HashMap<>();
-        map.put(CLASS, BitMapField.class.getName());
-        definitions.put(BITMAP, map);
 
-        map = new HashMap<>();
-        map.put(CLASS, BinaryField.class.getName());
-        definitions.put(BIN, map);
-
-        map = new HashMap<>();
-        map.put(CLASS, Composite.class.getName());
-        definitions.put(COMPOSITE, map);
-
-        // field
-        definitions.put(A_CHAR, configureString(Padding.RIGHT, " ", Encoder.ASCII));
-        definitions.put(E_CHAR, configureString(Padding.RIGHT, " ", Encoder.EBCDIC));
-        definitions.put(B_NUM, configureString(Padding.NONE, " ", Encoder.BCD));
-        definitions.put(A_NUM, configureString(Padding.NONE, " ", Encoder.ASCII));
-        definitions.put(E_NUM, configureString(Padding.NONE, " ", Encoder.EBCDIC));
-        definitions.put(A_AMT, configureAmount(Encoder.ASCII));
-        definitions.put(E_AMT, configureAmount(Encoder.EBCDIC));
-
-        // encoder
-        definitions.put(ASCII, Encoder.ASCII);
-        definitions.put(EBCDIC, Encoder.EBCDIC);
-        definitions.put(BCD, Encoder.BCD);
-        definitions.put(BCD_PADDED, Encoder.BCD_PADDED);
-        definitions.put(BINARY, Encoder.BINARY);
+        // loading DataElements public methods
+        for (Method m : DataElements.class.getMethods()) {
+            if (!Modifier.isStatic(m.getModifiers()))
+                continue;
+            if (Component.class.isAssignableFrom(m.getReturnType() )
+                && m.getParameterTypes().length == 1
+                        && m.getParameterTypes()[0] == Integer.TYPE) {
+                Supplier supplier = () -> {
+                    try {
+                        return m.invoke(null, 0);
+                    } catch (Exception e) {
+                        throw new MessageException(e);
+                    }
+                };
+                definitions.put(m.getName(), supplier);
+                definitions.put(m.getName().toUpperCase(), supplier);
+                definitions.put(m.getName().toLowerCase(), supplier);
+            } else if (Component.class.isAssignableFrom(m.getReturnType() )
+                    && m.getParameterTypes().length == 0) {
+                Supplier supplier = () -> {
+                    try {
+                        return m.invoke(null);
+                    } catch (Exception e) {
+                        throw new MessageException(e);
+                    }
+                };
+                definitions.put(m.getName(), supplier);
+                definitions.put(m.getName().toUpperCase(), supplier);
+                definitions.put(m.getName().toLowerCase(), supplier);
+            }
+        }
     }
 
     private Map<String, Object> configureAmount(Encoder encoder) {
@@ -140,7 +151,7 @@ public class CompositeBuilder {
         return map;
     }
 
-    protected Object fromTokens(String key, String str) throws Exception {
+    protected Object fromTokens(String key, String str) {
         String tokStr = str.replace("\\,", "\uFF0C");
         String[] tokens = tokStr.split(",");
         for (int i = 0; i < tokens.length; i++)
@@ -186,7 +197,7 @@ public class CompositeBuilder {
         return this;
     }
 
-    protected void configure(Composite comp, Map<String, Object> map) throws Exception {
+    protected void configure(Composite comp, Map<String, Object> map) {
         Object header = map.get(HEADER);
         Map<String, Map<String, Object>> attr = (Map) map.get("attributes");
         Map<String, Map<String, Object>> components = (Map) map.get("components");
@@ -203,7 +214,7 @@ public class CompositeBuilder {
         }
     }
 
-    public CompositeBuilder header(Object header) throws Exception {
+    public CompositeBuilder header(Object header) {
         if (header != null) {
             if (header instanceof Map) {
                 Map hdr = (Map) header;
@@ -211,25 +222,25 @@ public class CompositeBuilder {
                     hdr.put(CLASS, BinaryField.class.getName());
             }
             Object h = newInstance(HEADER, header);
-            if (!(h instanceof BinaryField))
-                throw new MessageException("Header must be an instance of BinaryField");
-            BinaryField c = (BinaryField) h;
+            if (!(h instanceof HeaderField))
+                throw new MessageException("Header must be an instance of HeaderField");
+            HeaderField c = (HeaderField) h;
             composite.header(c);
         }
         return this;
     }
 
-    public CompositeBuilder set(int index, Object val) throws Exception {
+    public CompositeBuilder set(int index, Object val) {
         composite.set(index, (Component) newInstance("" + index, val));
         return this;
     }
 
-    public CompositeBuilder set(Composite comp, int index, Object val) throws Exception {
+    public CompositeBuilder set(Composite comp, int index, Object val) {
         comp.set(index, (Component) newInstance("" + index, val));
         return this;
     }
 
-    public CompositeBuilder attribute(String key, Object val) throws Exception {
+    public CompositeBuilder attribute(String key, Object val) {
         composite.getAttributes().put(key, val);
         return this;
     }
@@ -242,7 +253,7 @@ public class CompositeBuilder {
         this.composite = composite;
     }
 
-    private Object newInstance(String instanceName, Object obj) throws Exception {
+    private Object newInstance(String instanceName, Object obj) {
         Object val = obj;
         if (val instanceof Map) {
             val = fromMap(instanceName, (Map) val);
@@ -256,13 +267,15 @@ public class CompositeBuilder {
             } catch (Exception ex) {
                 val = loadClassField(instanceName, val.toString());
             }
+        } else if (val instanceof Supplier) {
+            val = ((Supplier) val).get();
         } else {
             throw new MessageException(instanceName + " configuration: " + val);
         }
         return val;
     }
 
-    private Object loadClassField(String instanceName, String str) throws Exception {
+    private Object loadClassField(String instanceName, String str) {
         Object val;
         int idx = str.lastIndexOf('.');
         if (idx > 0 && idx < str.length() - 2) {
@@ -274,14 +287,13 @@ public class CompositeBuilder {
             } catch (Exception e) {
                 val = fromTokens(instanceName, str);
             }
-
         } else {
             val = fromTokens(instanceName, str);
         }
         return val;
     }
 
-    private Object fromMap(String instanceName, Map<String, Object> map) throws Exception {
+    private Object fromMap(String instanceName, Map<String, Object> map) {
         Object instance;
         Object clsStr = map.get(CLASS);
         if (clsStr == null)
@@ -290,15 +302,17 @@ public class CompositeBuilder {
             throw new MessageException("Recursive definition " + instanceName);
         if (definitions.containsKey(clsStr)) {
             Object obj = definitions.get(clsStr);
-            if (obj instanceof Map) {
-                instance = newInstance(instanceName, (Map) obj);
-            } else {
-                instance = obj;
-                return instance;
-            }
+            instance = (obj instanceof Map) ? newInstance(instanceName, obj)
+                    : (obj instanceof Supplier) ? ((Supplier) obj).get() : null;
+            if (instance == null)
+                return obj;
         } else {
-            Class cls = loader.loadClass(clsStr.toString());
-            instance = cls.getDeclaredConstructor().newInstance();
+            try {
+                Class cls = loader.loadClass(clsStr.toString());
+                instance = cls.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new MessageException(e);
+            }
         }
 
         if (instance instanceof Composite) {
@@ -309,15 +323,25 @@ public class CompositeBuilder {
         return instance;
     }
 
-    private void setProperties(Object instance, Map<String, Object> map) throws Exception {
-        BeanInfo beanInfo = Introspector.getBeanInfo(instance.getClass());
+    private void setProperties(Object instance, Map<String, Object> map) {
+        BeanInfo beanInfo = null;
+        try {
+            beanInfo = Introspector.getBeanInfo(instance.getClass());
+        } catch (IntrospectionException e) {
+            throw new MessageException(e);
+        }
         PropertyDescriptor[] props = beanInfo.getPropertyDescriptors();
         for (PropertyDescriptor prop : props) {
             Object value = map.get(prop.getName());
             Method setter = prop.getWriteMethod();
             if (prop.getName().equals(CLASS) || value == null || setter == null)
                 continue;
-            Object field = convert(prop, value);
+            Object field = null;
+            try {
+                field = convert(prop, value);
+            } catch (Exception exception) {
+                throw new MessageException(exception);
+            }
             if (field != SKIP) {
                 setProperty(instance, setter, field);
             }
@@ -342,7 +366,8 @@ public class CompositeBuilder {
                 && !String.class.isAssignableFrom(prop.getWriteMethod().getParameterTypes()[0])) {
             if (definitions.containsKey(value.toString())) {
                 Object obj = definitions.get(value.toString());
-                field = (obj instanceof Map) ? fromMap(prop.getName(), (Map) obj) : obj;
+                field = (obj instanceof Map) ? fromMap(prop.getName(), (Map) obj)
+                        : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj;
             } else if (Class.class.isAssignableFrom(prop.getWriteMethod().getParameterTypes()[0])) {
                 field = loader.loadClass(value.toString());
             } else if (prop.getWriteMethod().getParameterTypes()[0].equals(Character.TYPE)
@@ -423,12 +448,20 @@ public class CompositeBuilder {
             if (MAX_LENGTH.equalsIgnoreCase(tokens[0])) {
                 maxLength = Integer.parseInt(tokens[1]);
             } else if (DATA_LENGTH.equalsIgnoreCase(tokens[0])) {
-                dataLength = (DataLength) definitions.get(tokens[2]);
+                if (definitions.containsKey(tokens[1])) {
+                    Object obj = definitions.get(tokens[1]);
+                    dataLength =(DataLength) ((obj instanceof Map) ? fromMap(tokens[0], (Map) obj)
+                            : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj);
+                } else {
+                    dataLength = (DataLength) newInstance(tokens[0], tokens[1]);
+                }
             } else if (ENCODER.equalsIgnoreCase(tokens[0])) {
-                try {
-                    encoder = (Encoder) newInstance(tokens[0].trim(), tokens[1].trim());
-                } catch (Exception e) {
-                    throw new MessageException(e);
+                if (definitions.containsKey(tokens[1])) {
+                    Object obj = definitions.get(tokens[1]);
+                    encoder =(Encoder) ((obj instanceof Map) ? fromMap(tokens[0], (Map) obj)
+                            : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj);
+                } else {
+                    encoder = (Encoder) newInstance(tokens[0], tokens[1]);
                 }
             } else if (PADDING.equalsIgnoreCase(tokens[0])) {
                 padding = Padding.valueOf(tokens[1].toUpperCase());

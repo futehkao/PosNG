@@ -47,7 +47,7 @@ import com.futeh.progeny.iso.ISOField;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class IFB_LLHNUMTest
 {
     @Test

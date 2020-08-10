@@ -25,7 +25,6 @@ public abstract class Field<T, V extends Field> extends Component<T, V> {
     protected int maxLength;
     private DataLength dataLength = new FixedLen();
     private Encoder<T> encoder;
-    private String desc;
     private Padding padding = Padding.NONE;
 
     public Field() {
@@ -118,23 +117,6 @@ public abstract class Field<T, V extends Field> extends Component<T, V> {
 
     public V dataLength(DataLength length) {
         this.dataLength = length;
-        return (V) this;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String description) {
-        this.desc = description;
-    }
-
-    public String desc() {
-        return desc;
-    }
-
-    public V desc(String description) {
-        setDesc(description);
         return (V) this;
     }
 }

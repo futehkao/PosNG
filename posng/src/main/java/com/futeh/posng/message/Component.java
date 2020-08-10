@@ -32,6 +32,7 @@ import java.io.*;
 public abstract class Component<T, V extends Component> {
     private int index = -1;
     private DataLength dataLength = new FixedLen();
+    private String desc;
 
     public int getIndex() {
         return index;
@@ -84,6 +85,23 @@ public abstract class Component<T, V extends Component> {
     @SuppressWarnings("unchecked")
     public V dataLength(DataLength length) {
         this.dataLength = length;
+        return (V) this;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String description) {
+        this.desc = description;
+    }
+
+    public String desc() {
+        return desc;
+    }
+
+    public V desc(String description) {
+        setDesc(description);
         return (V) this;
     }
 }

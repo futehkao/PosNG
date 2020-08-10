@@ -16,12 +16,13 @@
 
 package com.futeh.posng.message.serialization;
 
-
 import com.futeh.posng.message.BitMapField;
 import com.futeh.posng.message.Composite;
 import com.futeh.posng.message.Message;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("posng")
 public class JsonWriterTest {
     @Test
     void basic() throws Exception {

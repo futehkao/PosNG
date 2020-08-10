@@ -47,7 +47,7 @@ import com.futeh.progeny.iso.EbcdicPrefixer;
  * Tests the EBCDIC length Prefixer.
  * @author jonathan.oconnor@xcom.de
  */
-@Tag("iso")
+@Tag("progeny")
 public class EbcdicPrefixerTest
 {
     @Test

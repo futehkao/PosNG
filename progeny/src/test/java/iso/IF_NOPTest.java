@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class IF_NOPTest
 {
     @Test

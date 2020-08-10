@@ -188,7 +188,7 @@ public class ISOMsgPanel extends JPanel {
                                 return ISOUtil.hexString((byte[]) obj);
                             else if (obj instanceof ISOMsg)
                                 return "<ISOMsg>";
-                        } catch (ISOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }   
                         break;
@@ -229,7 +229,7 @@ public class ISOMsgPanel extends JPanel {
                             f.pack();
                             f.setVisible(true);
                         }
-                    } catch (ISOException ex) {
+                    } catch (Exception ex) {
                         ex.printStackTrace();
                     }   
                 }

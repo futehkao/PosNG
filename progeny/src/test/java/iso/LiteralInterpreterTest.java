@@ -50,7 +50,7 @@ import com.futeh.progeny.iso.LiteralInterpreter;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class LiteralInterpreterTest {
     private Interpreter inter;
 

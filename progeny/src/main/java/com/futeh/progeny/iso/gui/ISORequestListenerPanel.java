@@ -153,7 +153,7 @@ public class ISORequestListenerPanel extends JPanel implements Observer {
                 log.addElement(m);
                 if (log.getSize() > LOG_CAPACITY) 
                     log.remove(0);
-            } catch (ISOException e) { }
+            } catch (Exception e) { }
         }
     }
 

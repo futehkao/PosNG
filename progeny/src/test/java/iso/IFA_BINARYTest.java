@@ -48,7 +48,7 @@ import com.futeh.progeny.iso.ISOBinaryField;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class IFA_BINARYTest
 {
     @Test

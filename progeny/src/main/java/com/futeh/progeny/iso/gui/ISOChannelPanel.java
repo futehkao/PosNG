@@ -191,7 +191,7 @@ public class ISOChannelPanel extends JPanel implements Observer {
                 if (log.getSize() > LOG_CAPACITY) 
                     log.remove(0);
 
-            } catch (ISOException e) { 
+            } catch (Exception e) {
                 meter.setValue(ISOMeter.mass, "ERROR");
             }
             meter.setValue(ISOMeter.mass);

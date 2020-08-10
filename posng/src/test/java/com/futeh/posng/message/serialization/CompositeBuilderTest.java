@@ -18,6 +18,7 @@ package com.futeh.posng.message.serialization;
 
 import com.futeh.posng.message.Composite;
 import com.futeh.posng.message.StringField;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("posng")
 public class CompositeBuilderTest {
 
     String read(String file) throws IOException {

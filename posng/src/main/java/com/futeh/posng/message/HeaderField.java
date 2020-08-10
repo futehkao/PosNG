@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package com.futeh.posng.length;
+package com.futeh.posng.message;
 
-import com.futeh.posng.message.Field;
-import com.futeh.posng.message.MessageException;
-import com.futeh.posng.message.Padding;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.futeh.posng.encoder.Encoder;
+import com.futeh.posng.encoder.HeaderEncoder;
 
-public class FixedLen implements DataLength {
+import java.util.Arrays;
 
-    @Override
-    public int read(InputStream in, int maxWidth) {
-        return maxWidth;
+public class HeaderField extends BinaryField {
+
+    public HeaderField() {
     }
 
-    @Override
-    public void write(OutputStream out, int width) {
-        // no op
+    public HeaderField(int maxLength) {
+        super(maxLength);
     }
 
-    @Override
-    public void validate(Field field) {
-        // don't care.
+    public byte[] forResponse(byte[] bytes) {
+        if (bytes == null)
+            return null;
+        Encoder<byte[]> encoder = getEncoder();
+        if (encoder instanceof HeaderEncoder) {
+            return ((HeaderEncoder) encoder).forResponse(bytes);
+        }
+        return Arrays.copyOf(bytes, bytes.length);
     }
 }

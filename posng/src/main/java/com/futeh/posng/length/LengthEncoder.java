@@ -33,6 +33,13 @@ public interface LengthEncoder {
     int read(InputStream in, int numDigits) throws IOException;
     void write(OutputStream out, int numDigits, int length) throws IOException;
 
+    default long maxLength(int digits) {
+        int num = 1;
+        for (int i = 0; i < digits; i++)
+            num *= 10;
+        return num - 1;
+    }
+
     class AsciiLength implements LengthEncoder {
 
         @Override
@@ -95,25 +102,33 @@ public interface LengthEncoder {
 
     class BinaryLength implements LengthEncoder {
 
-        public int read(InputStream in, int numDigits) throws IOException {
-            byte[] bytes = Encoder.read(in, numDigits);
+        public int read(InputStream in, int numBytes) throws IOException {
+            byte[] bytes = Encoder.read(in, numBytes);
             int len = 0;
-            for (int i = 0; i < numDigits; i++) {
+            for (int i = 0; i < numBytes; i++) {
                 len <<= 8;
                 len += bytes[i] & 0xff;
             }
             return len;
         }
 
-        public void write(OutputStream out, int numDigits, int length) throws IOException {
+        public void write(OutputStream out, int numBytes, int length) throws IOException {
             int len = length;
             // network order need to write high bytes first
-            int mask = 0xff000000 >>> 8 * (4 - numDigits);
-            for (int i = 0; i < numDigits; i++ ) {
+            int mask = 0xff000000 >>> 8 * (4 - numBytes);
+            for (int i = 0; i < numBytes; i++ ) {
                 byte b = (byte) (len & mask);
                 out.write(b);
                 mask >>>= 8;
             }
+        }
+
+        public long maxLength(int numBytes) {
+            long len = 0;
+            for (int i = 0; i < numBytes; i++ ) {
+                len = len << 8 | 0xff;
+            }
+            return len;
         }
     }
 }

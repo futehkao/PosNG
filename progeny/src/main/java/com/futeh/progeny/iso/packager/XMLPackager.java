@@ -257,9 +257,9 @@ public class XMLPackager extends DefaultHandler
                 }
                 
             }
-        } catch (ISOException e) {
+        } catch (Exception e) {
             throw new SAXException 
-                ("ISOException unpacking "+fieldNumber);
+                ("Exception unpacking "+fieldNumber);
         }
     }
 

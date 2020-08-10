@@ -32,6 +32,11 @@ public class BinaryField extends Field<byte[], BinaryField> {
         encoder(Encoder.BINARY);
     }
 
+    public BinaryField(int maxLength) {
+        maxLength(maxLength);
+        encoder(Encoder.BINARY);
+    }
+
     public byte getPadWith() {
         return padWith;
     }

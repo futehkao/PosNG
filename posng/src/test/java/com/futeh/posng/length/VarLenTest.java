@@ -20,6 +20,7 @@ import com.futeh.progeny.iso.AsciiPrefixer;
 import com.futeh.progeny.iso.BcdPrefixer;
 import com.futeh.progeny.iso.BinaryPrefixer;
 import com.futeh.progeny.iso.EbcdicPrefixer;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -29,6 +30,7 @@ import java.io.InputStream;
 import static com.futeh.posng.DataElements.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("posng")
 class VarLenTest {
 
     @Test
@@ -88,7 +90,7 @@ class VarLenTest {
         byte[] bytes = new byte[2];
         prefixer.encodeLength(123, bytes);
         InputStream in = new ByteArrayInputStream(bytes);
-        DataLength lvar = HH;
+        DataLength lvar = H;
         int len = lvar.read(in, 9999);
         assertEquals(len, 123);
 

@@ -30,7 +30,7 @@ public class Composite extends Component<Message, Composite> {
     private SortedMap<Integer, Component> components;
     private int extendedBitmap = 65;  // for Banknet, it's third bitmap is located at DE65
     private Map<String, Object> attributes = new HashMap<>(); // this is for class to associate additional information.
-    private BinaryField header;
+    private HeaderField header;
     private BitMapField bitMapField;
     private boolean bitMapInitialized = false;
 
@@ -91,12 +91,12 @@ public class Composite extends Component<Message, Composite> {
         }
         if (components == null)
             components = new TreeMap<>();
+        component.index(index);
         try {
             component.validate();
         } catch (MessageException ex) {
             throw new MessageException("Component " + index + " validation error: " + ex.getMessage());
         }
-        component.index(index);
         components.put(index, component);
         if (component instanceof BitMapField) {
             bitMapField = null;
@@ -156,20 +156,20 @@ public class Composite extends Component<Message, Composite> {
         return this;
     }
 
-    public BinaryField getHeader() {
+    public HeaderField getHeader() {
         return header;
     }
 
-    public void setHeader(BinaryField header) {
+    public void setHeader(HeaderField header) {
         this.header = header;
         header.validate();
     }
 
-    public BinaryField header() {
+    public HeaderField header() {
         return header;
     }
 
-    public Composite header(BinaryField header) {
+    public Composite header(HeaderField header) {
         this.header = header;
         header.validate();
         return this;
@@ -197,7 +197,7 @@ public class Composite extends Component<Message, Composite> {
     }
 
     public Message defaultValue() {
-        return new Message();
+        return new Message(this);
     }
 
     public BitMap createBitMap(Message msg) {
@@ -375,7 +375,7 @@ public class Composite extends Component<Message, Composite> {
             tmpIn = new ByteArrayInputStream(bytes);
         }
 
-        Message msg = new Message();
+        Message msg = new Message(this);
         if (!getAttributes().isEmpty()) {
             msg.setAttributes(getAttributes());
         }

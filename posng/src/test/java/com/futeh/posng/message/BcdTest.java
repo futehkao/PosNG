@@ -18,12 +18,14 @@ package com.futeh.posng.message;
 
 import com.futeh.posng.encoder.Bcd;
 import com.futeh.progeny.iso.BCDInterpreter;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Tag("posng")
 class BcdTest {
 
     @Test

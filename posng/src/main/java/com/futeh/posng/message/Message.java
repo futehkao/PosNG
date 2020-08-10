@@ -31,6 +31,14 @@ public class Message implements Alias {
     private byte[] header;
     private Map<String, Object> attributes;
     private SortedMap<Integer, Object> contents = new TreeMap<>();
+    private Composite composite;
+
+    public Message() {
+    }
+
+    public Message(Composite composite) {
+        this.composite = composite;
+    }
 
     public byte[] getHeader() {
         return header;
@@ -48,6 +56,16 @@ public class Message implements Alias {
     @JsonIgnore
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = new WeakHashMap<>(attributes);
+    }
+
+    @JsonIgnore
+    public Composite getComposite() {
+        return composite;
+    }
+
+    @JsonIgnore
+    public void setComposite(Composite composite) {
+        this.composite = composite;
     }
 
     public Object getAttribute(String key) {
@@ -75,20 +93,20 @@ public class Message implements Alias {
         return (T) contents.get(index);
     }
 
-    public <T> T get(String index) {
-        String[] tokens = index.split("\\.");
+    public <T> T get(String path) {
+        String[] tokens = path.split("\\.");
         if (tokens.length == 0)
             return null;
-        Map<Integer, Object> current = getContents();
+        Message current = this;
         for (int i = 0; i < tokens.length - 1; i++) {
-            String p = tokens[i];
-            Object obj = current.get(Integer.parseInt(p.trim()));
+            int index = Integer.parseInt(tokens[i].trim());
+            Object obj = current.get(index);
             if (obj == null)
                 return null;
-            if (obj instanceof Message) {
-                current = ((Message) obj).getContents();
+            else if (obj instanceof Message) {
+                current = (Message) obj;
             } else {
-                throw new IllegalArgumentException("Invalid path " + index);
+                throw new MessageException("Invalid path " + path);
             }
         }
         return (T) current.get(Integer.parseInt(tokens[tokens.length - 1].trim()));
@@ -117,14 +135,65 @@ public class Message implements Alias {
     public Message set(int index, Object value) {
         if (value == null)
             unset(index);
-        else
+        else {
+            if (getComposite() != null) {
+                Component component = getComposite().get(index);
+                if (component == null)
+                    throw new MessageException("No component definition at " + index);
+                if (!component.defaultValue().getClass().isAssignableFrom(value.getClass())) {
+                    throw new MessageException("Illegal assignment at " + index
+                            + " cannot convert " + value.getClass()
+                            + " but " + component.defaultValue().getClass());
+                }
+            }
             contents.put(index, value);
+        }
+        return this;
+    }
+
+    public Message set(String path, Object value) {
+        String[] tokens = path.split("\\.");
+        if (tokens.length == 0)
+            return null;
+        Message current = this;
+        for (int i = 0; i < tokens.length - 1; i++) {
+            int index = Integer.parseInt(tokens[i].trim());
+            Object obj = current.get(index);
+            if (obj == null) {
+                Composite comp = null;
+                if (current.getComposite() != null) {
+                    Component component = current.getComposite().get(index);
+                    if (!(component instanceof Composite)) {
+                        StringBuilder builder = new StringBuilder();
+                        for (int j = 0; j <= i; j++) {
+                            builder.append(tokens[j]);
+                            if (j != i)
+                                builder.append(".");
+                        }
+                        throw new MessageException("Expecting composite at " + builder.toString());
+                    }
+                    comp = (Composite) component;
+                }
+                Message msg = new Message(comp);
+                current.set(index, msg);
+                current = msg;
+            } else if (obj instanceof Message) {
+                current = (Message) obj;
+            } else {
+                throw new MessageException("Invalid path " + path);
+            }
+        }
+        current.set(Integer.parseInt(tokens[tokens.length - 1].trim()), value);
         return this;
     }
 
     public Message unset(int index) {
         contents.remove(index);
         return this;
+    }
+
+    public String getMTI() {
+        return get(0).toString();
     }
 
     // https://en.wikipedia.org/wiki/ISO_8583
@@ -134,47 +203,54 @@ public class Message implements Alias {
             throw new MessageException("MTI not present");
 
         String mti = contents.get(0).toString();
-        int mtiNum = Integer.parseInt(mti);
-        if ((mtiNum / 10) % 2 != 0)
-            throw new MessageException("MTI=" + mtiNum + " is not a request.");
-        int lastDigit = mtiNum % 10;
-        int respLastDigit = 0;
-        switch (lastDigit) {
+        int msgFunc = Character.getNumericValue(mti.charAt(2)); // message function according to the wiki
+        if (msgFunc % 2 != 0)
+            throw new MessageException("MTI=" + mti + " is not a request.");
+
+        int msgOrigin = 0; // the last digit is called message origin
+        switch (msgFunc) {
             case 0:
             case 1:
-                respLastDigit = 0;
+                msgOrigin = 0;
                 break;
             case 2:
             case 3:
-                respLastDigit = 2;
+                msgOrigin = 2;
                 break; // got issuer or issuer repeat
             case 4:
             case 5:
-                respLastDigit = 4;
+                msgOrigin = 4;
                 break; // notification, 2003 version.
             case 6:
             case 7:
-                respLastDigit = 6;
+                msgOrigin = 6;
                 break;
             // 8, 9 are reserved.
         }
         String respMti = mti.substring(0, 2);
-        respMti += Character.getNumericValue(mti.charAt(2)) + 1;
-        respMti += respLastDigit;
+        respMti += (msgFunc + 1);
+        respMti += msgOrigin;
         Message copy = copy();
         copy.set(0, respMti);
+
+        if (getComposite() != null && getComposite().header() != null) {
+            copy.setHeader(getComposite().header().forResponse(copy.header));
+        }
         return copy;
     }
 
     // this is a deep copy
     public Message copy() {
         try {
-            Message copy = new Message();
+            Message copy = new Message(composite);
             if (attributes != null) {
                 copy.attributes = new HashMap<>(attributes);
             }
-            if (header != null)
+
+            if (header != null) {
                 copy.header = Arrays.copyOf(header, header.length);
+            }
+
             for (Map.Entry<Integer, Object> entry : contents.entrySet()) {
                 if (entry.getValue() instanceof Message)
                     copy.contents.put(entry.getKey(), ((Message) entry.getValue()).copy());
@@ -189,7 +265,7 @@ public class Message implements Alias {
 
     public Object copy(int[] fields) {
         try {
-            Message copy = new Message();
+            Message copy = new Message(composite);
             if (attributes != null) {
                 copy.attributes = new HashMap<>(attributes);
             }

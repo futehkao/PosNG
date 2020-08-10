@@ -47,7 +47,7 @@ import com.futeh.progeny.iso.IFB_LLHCHAR;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class IFB_LLHCHARTest
 {
     @Test

@@ -20,7 +20,7 @@
   },
   // type, maxLength, data length (eg F, AA, EE), padding direction, pad with (could be char for string field
   // or hex for binary field)
-  "header" : "bin, 22, BB, encoder=com.futeh.posng.network.visa.Base1Header",
+  "header" : "header, 22, BB, encoder=com.futeh.posng.network.visa.Base1Header",
   "components": {
     "1": {
       "desc": "description",
@@ -31,8 +31,8 @@
       "padding": "left"
     },
     "2": "TypeX, 16, AA, desc=typeX\\, blah\\, blah",
-    "3": "BinX, 16, encoder=com.futeh.posng.encoder.Encoder.BINARY",
-    "4": "bin, 8, F, left, 0xAA",
+    "3": "BinX, 16, encoder=BINARY",
+    "4": "BIN, 8, F, left, 0xAA",
     "5": {
       "class": "composite",
       "extendedBitmap" : 66,

@@ -47,7 +47,7 @@ import com.futeh.progeny.iso.BcdPrefixer;
  * Tests the ASCII length Prefixer.
  * @author jonathan.oconnor@xcom
  */
-@Tag("iso")
+@Tag("progeny")
 public class BcdPrefixerTest
 {
     @Test

@@ -50,7 +50,7 @@ import com.futeh.progeny.iso.RightPadder;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class RightPadderTest  {
     private RightPadder padder;
 

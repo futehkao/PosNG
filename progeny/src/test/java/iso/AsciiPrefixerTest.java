@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Tests the ASCII length Prefixer.
  * @author jonathan.oconnor@xcom
  */
-@Tag("iso")
+@Tag("progeny")
 public class AsciiPrefixerTest
 {
     @Test

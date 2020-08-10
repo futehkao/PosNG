@@ -251,7 +251,7 @@ public class LogPackager extends DefaultHandler
                     m.set (new ISOField (fieldNumber, value));
                 }
             }
-        } catch (ISOException e) {
+        } catch (Exception e) {
             throw new SAXException 
                 ("ISOException unpacking "+fieldNumber);
         }

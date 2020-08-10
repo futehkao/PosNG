@@ -20,9 +20,7 @@ import com.futeh.posng.encoder.Encoder;
 import com.futeh.posng.length.DataLength;
 import com.futeh.posng.length.FixedLen;
 import com.futeh.posng.length.VarLen;
-import com.futeh.posng.message.AmountField;
-import com.futeh.posng.message.BinaryField;
-import com.futeh.posng.message.StringField;
+import com.futeh.posng.message.*;
 
 public class DataElements {
     public static DataLength F = new FixedLen();
@@ -38,103 +36,82 @@ public class DataElements {
     public static DataLength BBB = new VarLen(3).bcd();
     public static DataLength BBBB = new VarLen(4).bcd();
     public static DataLength BBBBB = new VarLen(5).bcd();
-    public static DataLength H = new VarLen(2).binary();  // for Visa, it is called Hex and therefore H.
-    public static DataLength HH = new VarLen(5).binary();
+    // Usually AA, EE etc means the number of digits.  However for H, it means the number of bytes.
+    public static DataLength H = new VarLen(1).binary();  // max is 255
+    public static DataLength HH = new VarLen(2).binary(); // max is 2^16 - 1.
+
+    public static Encoder ascii = Encoder.ASCII;
+    public static Encoder ebcdic = Encoder.EBCDIC;
+    public static Encoder bcd = Encoder.BCD;
+    public static Encoder bcd_padded = Encoder.BCD_PADDED;
+    public static Encoder binary = Encoder.BINARY;
+
+    public static Composite composite() {
+        return new Composite();
+    }
+
+    public static HeaderField header(int maxLength) {
+        return new HeaderField(maxLength);
+    }
+
+    public static BitMapField bitmap(int maxLength) {
+        return new BitMapField(maxLength);
+    }
 
     public static StringField string(int maxLength) {
         return new StringField().maxLength(maxLength);
     }
 
-    public static StringField ascii(int maxLength) {
-        return string(maxLength).ascii();
-    }
-
-    public static StringField ascii(int maxLength, DataLength length) {
-        return string(maxLength).ascii().dataLength(length);
-    }
-
-    public static StringField ebcdic(int maxLength) {
-        return string(maxLength).ebcdic();
-    }
-
-    public static StringField ebcdic(int maxLength, DataLength length) {
-        return string(maxLength).ebcdic().dataLength(length);
-    }
-
-    public static StringField bcdPadded(int maxLength) {
-        return string(maxLength).bcdLeft();
-    }
-
-    public static StringField bcdPadded(int maxLength, DataLength length) {
-        return string(maxLength).bcdLeft().dataLength(length);
-    }
-
-    public static StringField bcd(int maxLength) {
-        return string(maxLength).bcdRight();
-    }
-
-    public static StringField bcd(int maxLength, DataLength length) {
-        return string(maxLength).bcdRight().dataLength(length);
-    }
-
-    public static BinaryField binary(int maxLength) {
-        return new BinaryField().maxLength(maxLength);
-    }
-
-    public static BinaryField binary(int maxLength, DataLength length) {
-        return new BinaryField().maxLength(maxLength).dataLength(length);
-    }
-
     // ascii character right padded with spaces
     public static StringField a_char(int maxLength) {
-        return ascii(maxLength).dataLength(F).rightPadded().padWith(' ');
+        return string(maxLength).ascii().dataLength(F).rightPadded().padWith(' ');
     }
 
     public static StringField a_char(int maxLength, DataLength len) {
-        return ascii(maxLength).dataLength(len).rightPadded().padWith(' ');
+        return string(maxLength).ascii().dataLength(len).rightPadded().padWith(' ');
     }
 
     // ebcdic character right padded with spaces
     public static StringField e_char(int maxLength) {
-        return ascii(maxLength).dataLength(F).rightPadded().padWith(' ');
+        return string(maxLength).ebcdic().dataLength(F).rightPadded().padWith(' ');
     }
 
     public static StringField e_char(int maxLength, DataLength len) {
-        return ebcdic(maxLength).dataLength(len).rightPadded().padWith(' ');
+        return string(maxLength).ebcdic().dataLength(len).rightPadded().padWith(' ');
     }
 
     // BCD encoded number, left padded with 0
     public static StringField b_num(int maxLength) {
-        return bcd(maxLength).dataLength(F).leftPadded('0');
+        return string(maxLength).bcdLeft().dataLength(F).leftPadded('0');
     }
 
     public static StringField b_num(int maxLength, DataLength len) {
-        return bcd(maxLength).dataLength(len).leftPadded('0');
+        return string(maxLength).bcdLeft().dataLength(len).leftPadded('0');
     }
 
     public static StringField a_num(int maxLength) {
-        return ascii(maxLength).dataLength(F).leftPadded('0');
+        return string(maxLength).ascii().dataLength(F).leftPadded('0');
     }
 
     public static StringField a_num(int maxLength, DataLength len) {
-        return ascii(maxLength).dataLength(len).leftPadded('0');
+        return string(maxLength).ascii().dataLength(len).leftPadded('0');
     }
 
     public static StringField e_num(int maxLength) {
-        return ebcdic(maxLength).dataLength(F).leftPadded('0');
+        return string(maxLength).ebcdic().dataLength(F).leftPadded('0');
     }
 
     public static StringField e_num(int maxLength, DataLength len) {
-        return ebcdic(maxLength).dataLength(len).leftPadded('0');
+        return string(maxLength).ebcdic().dataLength(len).leftPadded('0');
     }
 
     // binary
     public static BinaryField bin(int maxLength) {
-        return binary(maxLength);
+        return new BinaryField(maxLength);
     }
 
     public static BinaryField bin(int maxLength, DataLength len) {
-        return binary(maxLength).dataLength(len);
+        return new BinaryField(maxLength).dataLength(len);
     }
 
     public static AmountField e_amt(int maxLength) {

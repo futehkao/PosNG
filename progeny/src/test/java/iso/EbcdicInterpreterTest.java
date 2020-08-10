@@ -50,7 +50,7 @@ import com.futeh.progeny.iso.Interpreter;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class EbcdicInterpreterTest {
     private Interpreter inter;
 

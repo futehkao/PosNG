@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * @author joconnor
  */
-@Tag("iso")
+@Tag("progeny")
 public class IFB_LLLHECHARTest
 {
     @Test

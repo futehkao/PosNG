@@ -41,11 +41,10 @@ public class VarLen implements DataLength {
     public void validate(Field field) {
         if (digits <=0 )
             throw new MessageException("Digits not set.");
-        int num = 1;
-        for (int i = 0; i < digits; i++)
-            num *= 10;
-        if (field.maxLength() >= num)
-            throw new MessageException("maxLength " + field.maxLength() + " exceeds the capacity of the number of digits " + digits);
+        long max = lengthEncoder.maxLength(digits);
+
+        if (field.maxLength() > max)
+            throw new MessageException("Field " + field.index() + " maxLength " + field.maxLength() + " exceeds the capacity of the number of digits " + digits);
         field.padding(Padding.NONE);
     }
 

@@ -81,6 +81,7 @@ public class ISOBitMap extends ISOComponent implements Cloneable {
         fieldNumber = n;
         value = v;
     }
+
     /**
      * changes this Component field number<br>
      * Use with care, this method does not change
