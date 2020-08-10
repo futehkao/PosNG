@@ -301,11 +301,9 @@ public class CompositeBuilder {
         if (clsStr.equals(instanceName))
             throw new MessageException("Recursive definition " + instanceName);
         if (definitions.containsKey(clsStr)) {
-            Object obj = definitions.get(clsStr);
-            instance = (obj instanceof Map) ? newInstance(instanceName, obj)
-                    : (obj instanceof Supplier) ? ((Supplier) obj).get() : null;
-            if (instance == null)
-                return obj;
+            instance = fromDefinition(instanceName, clsStr.toString());
+            if (instance == definitions.get(clsStr)) // existing instance, don't modifiy, returns immediately
+                return instance;
         } else {
             try {
                 Class cls = loader.loadClass(clsStr.toString());
@@ -365,9 +363,7 @@ public class CompositeBuilder {
         } else if (value instanceof String // setter takes non-String arg but value is String
                 && !String.class.isAssignableFrom(prop.getWriteMethod().getParameterTypes()[0])) {
             if (definitions.containsKey(value.toString())) {
-                Object obj = definitions.get(value.toString());
-                field = (obj instanceof Map) ? fromMap(prop.getName(), (Map) obj)
-                        : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj;
+                field = fromDefinition(prop.getName(), value.toString());
             } else if (Class.class.isAssignableFrom(prop.getWriteMethod().getParameterTypes()[0])) {
                 field = loader.loadClass(value.toString());
             } else if (prop.getWriteMethod().getParameterTypes()[0].equals(Character.TYPE)
@@ -403,6 +399,12 @@ public class CompositeBuilder {
         return field;
     }
 
+    private <T> T fromDefinition(String name, String value) {
+        Object obj = definitions.get(value);
+        return (T) ((obj instanceof Map) ? fromMap(name, (Map) obj)
+                : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj);
+    }
+
     private class Tokens {
         int maxLength = -1;
         DataLength dataLength = null;
@@ -424,7 +426,7 @@ public class CompositeBuilder {
                             maxLength = Integer.parseInt(tokens[i]);
                             break;
                         case 2:
-                            dataLength = (DataLength) definitions.get(tokens[i]);
+                            dataLength = fromDefinition(null, tokens[i]);
                             break;
                         case 3:
                             padding = Padding.valueOf(tokens[i].toUpperCase());
@@ -449,17 +451,13 @@ public class CompositeBuilder {
                 maxLength = Integer.parseInt(tokens[1]);
             } else if (DATA_LENGTH.equalsIgnoreCase(tokens[0])) {
                 if (definitions.containsKey(tokens[1])) {
-                    Object obj = definitions.get(tokens[1]);
-                    dataLength =(DataLength) ((obj instanceof Map) ? fromMap(tokens[0], (Map) obj)
-                            : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj);
+                    dataLength = fromDefinition(tokens[0], tokens[1]);
                 } else {
                     dataLength = (DataLength) newInstance(tokens[0], tokens[1]);
                 }
             } else if (ENCODER.equalsIgnoreCase(tokens[0])) {
                 if (definitions.containsKey(tokens[1])) {
-                    Object obj = definitions.get(tokens[1]);
-                    encoder =(Encoder) ((obj instanceof Map) ? fromMap(tokens[0], (Map) obj)
-                            : (obj instanceof Supplier) ? ((Supplier) obj).get() : obj);
+                    encoder = fromDefinition(tokens[0], tokens[1]);
                 } else {
                     encoder = (Encoder) newInstance(tokens[0], tokens[1]);
                 }
