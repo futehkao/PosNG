@@ -56,7 +56,7 @@ public class TLVMsg {
     }
 
     /**
-     * @param value of TLV Message
+     * @param newValue of TLV Message
      */
     public void setValue(byte[] newValue) {
         this.value = newValue;

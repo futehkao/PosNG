@@ -57,6 +57,7 @@ import java.io.*;
 import java.lang.ref.WeakReference;
 import java.util.BitSet;
 import java.util.SortedMap;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 /**
@@ -296,6 +297,8 @@ public class ISOMsg extends ISOComponent
             current.set(Integer.parseInt(tokens[tokens.length - 1].trim()), (String) value);
         else if (value instanceof byte[])
             current.set(Integer.parseInt(tokens[tokens.length - 1].trim()), (byte[]) value);
+        else if (value == null)
+            current.unset(Integer.parseInt(tokens[tokens.length - 1].trim()));
         else
             throw new IllegalArgumentException("Invalid argument type " + value);
     }
@@ -474,6 +477,14 @@ public class ISOMsg extends ISOComponent
         return current.getValue(Integer.parseInt(tokens[tokens.length - 1].trim()));
     }
 
+    public byte[] getBytes (int fldno) {
+        return (byte[]) getValue(fldno);
+    }
+
+    public byte[] getBytes (String path) {
+        return (byte[]) getValue(path);
+    }
+
     /**
      * Return the String value associated with the given ISOField number
      *
@@ -517,7 +528,7 @@ public class ISOMsg extends ISOComponent
      * @return boolean indicating the existence of the field
      */
     public boolean hasField(int fldno) {
-        return fields.get(new Integer(fldno)) != null;
+        return fields.get(fldno) != null;
     }
 
     /**
@@ -531,6 +542,10 @@ public class ISOMsg extends ISOComponent
             if (!hasField(fields[i]))
                 return false;
         return true;
+    }
+
+    public boolean hasField (String path) {
+        return getValue(path) != null;
     }
 
     /**

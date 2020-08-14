@@ -16,7 +16,7 @@ import com.futeh.progeny.iso.ISOException;
 @SuppressWarnings("unchecked")
 public class TLVList {
 
-    private List tags = new ArrayList();
+    private List<TLVMsg> tags = new ArrayList();
     private int tagToFind = 0;
     private int indexLastOccurrence = -1;
 
@@ -24,8 +24,6 @@ public class TLVList {
      * empty constructor
      */
     public TLVList() {
-     
-       
     }
 
     /**
@@ -41,6 +39,10 @@ public class TLVList {
                 append(currentNode);
             }
         }
+    }
+
+    public List<TLVMsg> getTags() {
+        return tags;
     }
     
     /**
@@ -59,13 +61,14 @@ public class TLVList {
         TLVMsg currentNode;
         while (hasNext(buffer)) {    
             currentNode = getTLVMsg(buffer);
-            append(currentNode);
+            if (currentNode != null)
+                append(currentNode);
         }
     }
 
     /**
      * Append TLVMsg to the TLVList
-     * @param TLVMsg
+     * @param tlvToAppend TLVMsg to append
      */
     public void append(TLVMsg tlvToAppend) {
         tags.add(tlvToAppend);
@@ -73,7 +76,7 @@ public class TLVList {
     
     /**
      * Append TLVMsg to the TLVList
-     * @param TAG
+     * @param tag
      * @param value
      */
     public void append(int tag, byte[] value) {
@@ -180,7 +183,7 @@ public class TLVList {
         TLVMsg tlv;
         ByteBuffer buffer=ByteBuffer.allocate(400);
         while(i<tags.size()) {
-            tlv=(TLVMsg)(tags.get(i));
+            tlv = tags.get(i);
             buffer.put(tlv.getTLV());
             i++;
         }
@@ -255,6 +258,14 @@ public class TLVList {
             } while ((b & 0x80) == 0x80);
         }
         return tag;
+    }
+
+    public byte[] getValue(int tag) {
+        TLVMsg msg = find(tag);
+        if (msg == null)
+            return null;
+
+        return msg.getValue();
     }
     
     /*

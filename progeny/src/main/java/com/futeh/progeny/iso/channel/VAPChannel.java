@@ -226,6 +226,22 @@ public class VAPChannel extends BaseChannel {
         return false;
     }
 
+    public String getSrcId() {
+        return srcid;
+    }
+
+    public void setSrcId(String srcid) {
+        this.srcid = srcid;
+    }
+
+    public String getDstId() {
+        return dstid;
+    }
+
+    public void setDstId(String dstid) {
+        this.dstid = dstid;
+    }
+
     /**
      * sends an ISOMsg over the TCP/IP session.
      *

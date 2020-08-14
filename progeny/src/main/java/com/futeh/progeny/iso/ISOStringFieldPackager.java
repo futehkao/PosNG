@@ -51,6 +51,7 @@ package com.futeh.progeny.iso;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author joconnor
@@ -165,7 +166,11 @@ public class ISOStringFieldPackager extends ISOFieldPackager
     {
         try
         {
-            String data = (String)c.getValue();
+            String data;
+            if(c.getValue() instanceof byte[])
+                data = new String(c.getBytes(), StandardCharsets.ISO_8859_1);
+            else
+                data = (String)c.getValue();
             if (data.length() > getLength())
             {
                 throw new ISOException("Field length " + data.length() + " too long. Max: " + getLength());

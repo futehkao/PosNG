@@ -26,8 +26,6 @@ import java.io.*;
  * Instead of Leaf, we use Field to mean 'Leaf' because it better
  * reflects the usage.
  * The Composite class is mapped to 'Composite' in the pattern.
- * @param <T>
- * @param <V>
  */
 public abstract class Component<T, V extends Component> {
     private int index = -1;

@@ -426,6 +426,31 @@ public abstract class BaseChannel extends Observable
     {
         serverOut.write(b, offset, len);
     }
+
+    // adapted from the send below.
+    public void send (byte[] b) throws IOException, ISOException
+    {
+        LogEvent evt = new LogEvent (this, "send");
+        try {
+            if (!isConnected())
+                throw new ISOException ("unconnected ISOChannel");
+            synchronized (serverOut) {
+                serverOut.write(b);
+                serverOut.flush();
+            }
+            cnt[TX]++;
+            setChanged();
+        } catch (ISOException e) {
+            evt.addMessage (e);
+            throw e;
+        } catch (Exception e) {
+            evt.addMessage (e);
+            throw new ISOException ("unexpected exception", e);
+        } finally {
+            Logger.log (evt);
+        }
+    }
+
     /**
      * sends an ISOMsg over the TCP/IP session
      * @param m the Message to be sent

@@ -275,7 +275,6 @@ public class Composite extends Component<Message, Composite> {
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
      *
      * @param out output stream
-     * @throws IOException
      */
     @Override
     public void write(OutputStream out, Message msg) throws IOException {
@@ -364,7 +363,6 @@ public class Composite extends Component<Message, Composite> {
      * Handling of header such as in Visa base 1 should be handled at the caller at the socket level.
      *
      * @param in input stream
-     * @throws IOException
      */
     @Override
     public Message read(InputStream in) throws IOException {
