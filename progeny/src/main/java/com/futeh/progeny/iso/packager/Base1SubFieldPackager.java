@@ -51,15 +51,9 @@ package com.futeh.progeny.iso.packager;
 
 import java.util.*;
 
+import com.futeh.progeny.iso.*;
 import com.futeh.progeny.util.LogEvent;
 import com.futeh.progeny.util.Logger;
-import com.futeh.progeny.iso.ISOBasePackager;
-import com.futeh.progeny.iso.ISOBitMap;
-import com.futeh.progeny.iso.ISOBitMapPackager;
-import com.futeh.progeny.iso.ISOComponent;
-import com.futeh.progeny.iso.ISOException;
-import com.futeh.progeny.iso.ISOFieldPackager;
-import com.futeh.progeny.iso.ISOUtil;
 
 /**
  * ISO 8583 v1987 BINARY Packager 
@@ -83,8 +77,9 @@ public class Base1SubFieldPackager extends ISOBasePackager
         return (fld[0] instanceof ISOBitMapPackager);
     }
 
-    protected int getFirstField()
-    {
+    protected int getFirstField() {
+        if (fld[0] == null)
+            return 1;
         return (fld[0] instanceof ISOBitMapPackager) ? 1 : 0;
     }
 
@@ -113,7 +108,7 @@ public class Base1SubFieldPackager extends ISOBasePackager
 
             BitSet bmap = null;
             int maxField = fld.length;
-            if (emitBitMap()) 
+            if (emitBitMap())
             {
                 consumed += getBitMapfieldPackager().unpack(bitmap,b,consumed);
                 bmap = (BitSet) bitmap.getValue();
@@ -162,10 +157,11 @@ public class Base1SubFieldPackager extends ISOBasePackager
             int len = 0;
             byte[] b;
 
-            if (emitBitMap()) 
+            boolean emitBitMap = emitBitMap();
+            if (emitBitMap)
             {
                 // BITMAP (-1 in Map)
-                c = (ISOComponent) fields.get (new Integer (-1));
+                c = (ISOComponent) fields.get (-1);
                 b = getBitMapfieldPackager().pack(c);
                 len += b.length;
                 v.add (b);
@@ -173,16 +169,28 @@ public class Base1SubFieldPackager extends ISOBasePackager
 
             for (int i=getFirstField(); i<=m.getMaxField(); i++) 
             {
-                if ((c = (ISOComponent) fields.get (new Integer (i))) != null) 
-                {
-                    try 
-                    {
+                c = (ISOComponent) fields.get (i);
+                if (c == null && !emitBitMap) {
+                    if (fld[i] instanceof ISOBinaryFieldPackager) {
+                        c = new ISOBinaryField();
+                        c.setValue(new byte[0]);
+                    } else if (fld[i] instanceof ISOBitMapPackager) {
+                        c = new ISOBitMap(fld[i].getLength());
+                        c.setValue(new byte[fld[i].getLength()]);
+                    } else if (fld[i] instanceof ISOMsgFieldPackager) {
+                        c = new ISOMsg();
+                    } else {
+                        c = new ISOField();
+                        c.setValue("");
+                    }
+                }
+
+                if (c != null) {
+                    try {
                         b = fld[i].pack(c);
                         len += b.length;
                         v.add (b);
-                    } 
-                    catch (Exception e) 
-                    {
+                    } catch (Exception e) {
                         evt.addMessage ("error packing field "+i);
                         evt.addMessage (c);
                         evt.addMessage (e);
