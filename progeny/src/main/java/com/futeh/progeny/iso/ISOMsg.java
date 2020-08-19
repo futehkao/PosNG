@@ -343,9 +343,10 @@ public class ISOMsg extends ISOComponent
     public void recalcBitMap() {
         if (!dirty)
             return;
-        BitSet bmap = new BitSet(maxField);
+        int maxFieldRecalculated = getMaxField();
+        BitSet bmap = new BitSet(maxFieldRecalculated);
 
-        for (int i = 1; i <= maxField; i++)
+        for (int i = 1; i <= maxFieldRecalculated; i++)
             if (fields.get(i) != null)
                 bmap.set(i);
         set(new ISOBitMap(-1, bmap));
