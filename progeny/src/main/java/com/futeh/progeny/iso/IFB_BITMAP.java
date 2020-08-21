@@ -51,6 +51,7 @@ package com.futeh.progeny.iso;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -78,7 +79,8 @@ public class IFB_BITMAP extends ISOBitMapPackager {
      * @exception ISOException
      */
     public byte[] pack (ISOComponent c) throws ISOException {
-        return ISOUtil.bitSet2byte ((BitSet) c.getValue());
+        byte[] completeBytes = ISOUtil.bitSet2byte((BitSet) c.getValue());
+        return (getLength() < completeBytes.length) ? Arrays.copyOf(completeBytes, getLength()) : completeBytes;
     }
     /**
      * @param c - the Component to unpack
@@ -98,6 +100,7 @@ public class IFB_BITMAP extends ISOBitMapPackager {
             len = 192;
         return (Math.min (getLength(), len >> 3));
     }
+
     public void unpack (ISOComponent c, InputStream in) 
         throws IOException, ISOException
     {
