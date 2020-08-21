@@ -287,8 +287,8 @@ public class Composite extends Component<Message, Composite> {
             header.write(tmpOut, msg.getHeader());
         }
 
-        // write component 0, could b
-        // e an MTI or BitMap
+        // write component 0, could be
+        // an MTI or BitMap
         int bitMapIndex = getBitMapFieldIndex();
         for (int i = 0; i < bitMapIndex; i++) {
             Component comp = get(i);

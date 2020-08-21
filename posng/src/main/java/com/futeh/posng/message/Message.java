@@ -192,6 +192,7 @@ public class Message implements Alias {
         return this;
     }
 
+    @JsonIgnore
     public String getMTI() {
         return get(0).toString();
     }

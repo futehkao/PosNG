@@ -22,6 +22,8 @@ import com.futeh.posng.message.Message;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 @Tag("posng")
 public class JsonWriterTest {
     @Test
@@ -41,5 +43,8 @@ public class JsonWriterTest {
         String str = json.write(msg);
         System.out.println(str);
         Message s = json.read(str);
+        assertEquals((Object) s.get(2), msg.get(2));
+        Message nested = s.get(3);
+        assertEquals(nested.get(2), "cd");
     }
 }
