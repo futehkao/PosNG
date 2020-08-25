@@ -67,6 +67,12 @@ public class TLVMsg {
      */
     public byte[] getTLV() {
         String hexVal = Integer.toHexString(tag);
+        // If the produced hex value is odd, we must pad with 0's so the downstream hex related math will work.
+        if (hexVal.length() % 2 == 1) {
+        // We have to dynamically set the length to pad.
+            String format = "%0" + (hexVal.length() + 1) + "x";
+            hexVal = String.format(format, tag);
+        }
         byte[] bTag = ISOUtil.hex2byte(hexVal);
         byte[] bLen = getL();
         if (value != null) {
